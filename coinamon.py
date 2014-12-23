@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 # coding: utf-8
 
-import coinamon
+from coinamon.gui import MainWindow, Gtk
 
-coinamon.hello()
+win = MainWindow()
+win.connect("delete-event", Gtk.main_quit)
+win.show_all()
+
+Gtk.main()
