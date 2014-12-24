@@ -28,9 +28,17 @@ from gi.repository import Gtk
 class MainWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Coinamon")
-        self.button = Gtk.Button(label="Click Here")
+        self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, row_spacing=10)
+        self.stack = Gtk.Stack(vexpand=True, hexpand=True)
+        self.switcher = Gtk.StackSwitcher(
+            stack=self.stack, vexpand=False, hexpand=True, halign=Gtk.Align.CENTER)
+        self.grid.add(self.switcher)
+        self.grid.add(self.stack)
+        self.add(self.grid)
+        self.button = Gtk.Button(label="Click Here", vexpand=True, hexpand=True)
         self.button.connect("clicked", self.on_button_clicked)
-        self.add(self.button)
+        self.stack.add_titled(self.button, "button", "Button")
+        self.grid.show_all()
 
     def on_button_clicked(self, widget):
         print("Hello World")

@@ -28,7 +28,7 @@ from coinamon.gui import MainWindow, Gtk
 
 win = MainWindow()
 win.connect("delete-event", Gtk.main_quit)
-win.show_all()
+win.present()
 
 bind_engine('sqlite:///:memory:', echo=True)
 
