@@ -23,6 +23,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os.path
 from coinamon.db import bind_engine
 from coinamon.gui import MainWindow, Gtk
 
@@ -30,6 +31,6 @@ win = MainWindow()
 win.connect("delete-event", Gtk.main_quit)
 win.present()
 
-bind_engine('sqlite:///:memory:', echo=True)
+bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=True)
 
 Gtk.main()
