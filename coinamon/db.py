@@ -58,6 +58,7 @@ def db_session():
 def bind_engine(engine, **kwd):
     if isinstance(engine, str):
         engine = create_engine(engine, **kwd)
+    from . import models  # noqa
     Model.metadata.create_all(engine)
     Session.configure(bind=engine)
     return engine
