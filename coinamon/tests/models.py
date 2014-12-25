@@ -24,14 +24,12 @@
 
 import unittest
 from sqlalchemy.exc import IntegrityError
-from ..db import bind_engine, db_session
+from ..db import db_session
 from .. import models as m
+from . import DatabaseMixin
 
 
-class DatabaseTestCase(unittest.TestCase):
-    def setUp(self):
-        bind_engine('sqlite:///:memory:', echo=False)
-
+class DatabaseTestCase(DatabaseMixin, unittest.TestCase):
     def create(self, **kwd):
         obj = self.get_valid()
         for key, val in kwd.items():

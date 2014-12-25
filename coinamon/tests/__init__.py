@@ -22,9 +22,10 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import unittest
+from ..db import bind_engine
 
 
-class TruethTest(unittest.TestCase):
-    def test_trueth(self):
-        self.assertTrue(True)
+class DatabaseMixin():
+    def setUp(self):
+        bind_engine('sqlite:///:memory:', echo=False)
+        super().setUp()
