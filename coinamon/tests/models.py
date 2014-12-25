@@ -41,7 +41,7 @@ class DatabaseTestCase(unittest.TestCase):
 
 class AccountModelTest(DatabaseTestCase):
     def get_valid(self):
-        return m.Account(name="name", type=m.ACCOUNT_TYPE_RANDOM)
+        return m.Account(name="name", type=m.Account.TYPE_RANDOM)
 
     def test_valid_ok(self):
         with db_session() as db:
@@ -143,7 +143,7 @@ class AddressModelTest(DatabaseTestCase):
             self.account_id = self.account.id
 
     def get_valid(self):
-        return m.Address(id="addrid", type=m.ADDRESS_TYPE_CONTACT, category_id=self.category_id)
+        return m.Address(id="addrid", type=m.Address.TYPE_CONTACT, category_id=self.category_id)
 
     def test_valid_ok(self):
         with db_session() as db:
