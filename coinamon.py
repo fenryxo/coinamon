@@ -24,13 +24,38 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os.path
+import sys
 from coinamon.db import bind_engine
-from coinamon.gui import MainWindow, Gtk
-
-win = MainWindow()
-win.connect("delete-event", Gtk.main_quit)
-win.present()
 
 bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=True)
 
-Gtk.main()
+if len(sys.argv) > 1:
+    command_name = sys.argv[1]
+    from coinamon import cli as module
+    commands = {}
+    base_class_name = "Command"
+    base_class = getattr(module, base_class_name)
+    for name in dir(module):
+        if name != base_class_name:
+            candidate = getattr(module, name)
+            try:
+                if not issubclass(candidate,  base_class):
+                    continue
+            except TypeError:
+                continue
+
+            if candidate.name == command_name:
+                sys.exit(candidate().run(sys.argv[2:]))
+                break
+            commands[candidate.name] = candidate.label
+
+    print("Unknown command '{}'. Available commands are:\n".format(command_name))
+    for name in sorted(commands):
+        print(" *  {} - {}".format(name, commands[name]))
+
+else:
+    from coinamon.gui import MainWindow, Gtk
+    win = MainWindow()
+    win.connect("delete-event", Gtk.main_quit)
+    win.present()
+    Gtk.main()
