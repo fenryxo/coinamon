@@ -61,10 +61,10 @@ class Tag(Model):
         return name
 
 
-class Category(Model):
+class Group(Model):
     name = Column(String(50), nullable=False)
-    parent_id = Column(Integer, ForeignKey('category.id'))
-    parent = relationship("Category", remote_side="Category.id", backref="categories")
+    parent_id = Column(Integer, ForeignKey('group.id'))
+    parent = relationship("Group", remote_side="Group.id", backref="groups")
     n_tx = Column(Integer, nullable=False, default=0)
     balance = Column(BigInteger, nullable=False, default=0)
 
@@ -88,8 +88,8 @@ class Address(Model):
     id = Column(String(255), primary_key=True)
     account_id = Column(Integer, ForeignKey('account.id'))
     account = relationship("Account", backref="addresses")
-    category_id = Column(Integer, ForeignKey('category.id'))
-    category = relationship("Category", backref="addresses")
+    group_id = Column(Integer, ForeignKey('group.id'))
+    group = relationship("Group", backref="addresses")
     label = Column(String(50))
     n_tx = Column(Integer, nullable=False, default=0)
     balance = Column(BigInteger, nullable=False, default=0)

@@ -102,9 +102,9 @@ class TagModelTest(DatabaseTestCase):
             db.add(self.create(name=None))
 
 
-class CategoryModelTest(DatabaseTestCase):
+class GroupModelTest(DatabaseTestCase):
     def get_valid(self):
-        return m.Category(name="name")
+        return m.Group(name="name")
 
     def test_valid_ok(self):
         with db_session() as db:
@@ -112,7 +112,7 @@ class CategoryModelTest(DatabaseTestCase):
 
     def test_blank_fails(self):
         with self.assertRaises(IntegrityError), db_session() as db:
-            db.add(m.Category())
+            db.add(m.Group())
 
     def test_validate_name(self):
         with self.assertRaises(AssertionError), db_session() as db:
@@ -136,14 +136,14 @@ class AddressModelTest(DatabaseTestCase):
     def setUp(self):
         super().setUp()
         with db_session() as db:
-            self.category = m.Category(name="category")
+            self.group = m.Group(name="group")
             self.account = m.Account(name="Account")
             db.commit()
-            self.category_id = self.category.id
+            self.group_id = self.group.id
             self.account_id = self.account.id
 
     def get_valid(self):
-        return m.Address(id="addrid", type=m.Address.TYPE_CONTACT, category_id=self.category_id)
+        return m.Address(id="addrid", type=m.Address.TYPE_CONTACT, group_id=self.group_id)
 
     def test_valid_ok(self):
         with db_session() as db:
