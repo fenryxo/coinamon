@@ -33,7 +33,7 @@ ACCOUNT_TYPES = frozenset((ACCOUNT_TYPE_IMPORTED, ACCOUNT_TYPE_RANDOM))
 
 
 class Account(Model):
-    name = Column(String(50), nullable=False)
+    name = Column(String(50), nullable=False, unique=True)
     type = Column(Enum(*ACCOUNT_TYPES), nullable=False)
     n_tx = Column(Integer, nullable=False, default=0)
     balance = Column(BigInteger, nullable=False, default=0)
@@ -55,7 +55,7 @@ class Account(Model):
 
 
 class Tag(Model):
-    name = Column(String(50), nullable=False)
+    name = Column(String(50), nullable=False, unique=True)
 
     @validates('name')
     def validate_name(self, key, name):
