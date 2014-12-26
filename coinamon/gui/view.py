@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # coding: utf-8
 
 # Copyright 2014 Jiří Janoušek <janousek.jiri@gmail.com>
@@ -23,40 +22,31 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os.path
-import sys
-from coinamon.db import bind_engine
+from gi.repository import Gtk
 
-bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=True)
 
-if len(sys.argv) > 1:
-    command_name = sys.argv[1]
-    from coinamon import cli as module
-    commands = {}
-    base_class_name = "Command"
-    base_class = getattr(module, base_class_name)
-    for name in dir(module):
-        if name != base_class_name:
-            candidate = getattr(module, name)
-            try:
-                if not issubclass(candidate,  base_class):
-                    continue
-            except TypeError:
-                continue
+class View:
+    def __init__(self, name, label, widget):
+        super().__init__()
+        self.name = name
+        self.label = label
+        self.widget = widget
 
-            if candidate.name == command_name:
-                sys.exit(candidate().run(sys.argv[2:]))
-                break
-            commands[candidate.name] = candidate.label
+    def add_buttons(self, header_bar):
+        pass
 
-    print("Unknown command '{}'. Available commands are:\n".format(command_name))
-    for name in sorted(commands):
-        print(" *  {} - {}".format(name, commands[name]))
 
-else:
-    from coinamon.gui import Gtk, MainWindow, HelloWorldView
-    win = MainWindow()
-    win.add_view(HelloWorldView())
-    win.connect("delete-event", Gtk.main_quit)
-    win.present()
-    Gtk.main()
+class HelloWorldView(View):
+    def __init__(self):
+        widget = Gtk.Label(label="Hello world!")
+        super().__init__("hello_world", "Hello World", widget)
+        self.button = self.button = Gtk.Button(label="Click Here", visible=True)
+        self.button.connect("clicked", self.on_button_clicked)
+
+    def add_buttons(self, header_bar):
+        super().add_buttons(header_bar)
+        header_bar.pack_start(self.button)
+
+    def on_button_clicked(self, widget):
+        print("Hello World")
+        Gtk.main_quit()

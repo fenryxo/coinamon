@@ -23,23 +23,37 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from gi.repository import Gtk
+from collections import OrderedDict
 
 
 class MainWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Coinamon")
+        self.set_default_size(600, 400)
+        self.header_bar = Gtk.HeaderBar(visible=True, show_close_button=True)
+        self.set_titlebar(self.header_bar)
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, row_spacing=10)
-        self.stack = Gtk.Stack(vexpand=True, hexpand=True)
+        self.stack = Gtk.Stack(
+            transition_type=Gtk.StackTransitionType.SLIDE_LEFT_RIGHT, vexpand=True, hexpand=True)
         self.switcher = Gtk.StackSwitcher(
-            stack=self.stack, vexpand=False, hexpand=True, halign=Gtk.Align.CENTER)
-        self.grid.add(self.switcher)
+            stack=self.stack, vexpand=False, hexpand=True, halign=Gtk.Align.CENTER, visible=True)
+        self.header_bar.set_custom_title(self.switcher)
         self.grid.add(self.stack)
         self.add(self.grid)
-        self.button = Gtk.Button(label="Click Here", vexpand=True, hexpand=True)
-        self.button.connect("clicked", self.on_button_clicked)
-        self.stack.add_titled(self.button, "button", "Button")
         self.grid.show_all()
+        self.views = OrderedDict()
+        self.stack.connect("notify::visible-child-name", self.on_stack_child_changed)
 
-    def on_button_clicked(self, widget):
-        print("Hello World")
-        Gtk.main_quit()
+    def add_view(self, view, show=False):
+        self.views[view.name] = view
+        view.widget.show()
+        self.stack.add_titled(view.widget, view.name, view.label)
+        if show:
+            self.stack.set_visible_child(view.widget)
+
+    def on_stack_child_changed(self, stack, *args):
+        for child in self.header_bar.get_children():
+            self.header_bar.remove(child)
+        name = stack.get_visible_child_name()
+        if name:
+            self.views[name].add_buttons(self.header_bar)
