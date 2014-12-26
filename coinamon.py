@@ -25,7 +25,7 @@
 
 import os.path
 import sys
-from coinamon.db import bind_engine
+from coinamon.db import bind_engine, db_session
 
 bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=True)
 
@@ -54,9 +54,10 @@ if len(sys.argv) > 1:
         print(" *  {} - {}".format(name, commands[name]))
 
 else:
-    from coinamon.gui import Gtk, MainWindow, HelloWorldView
+    from coinamon.gui import Gtk, MainWindow, HelloWorldView, ContactsView
     win = MainWindow()
     win.add_view(HelloWorldView())
+    win.add_view(ContactsView(db_session), True)
     win.connect("delete-event", Gtk.main_quit)
     win.present()
     Gtk.main()

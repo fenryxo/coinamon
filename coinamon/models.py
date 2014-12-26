@@ -68,6 +68,10 @@ class Group(Model):
     n_tx = Column(Integer, nullable=False, default=0)
     balance = Column(BigInteger, nullable=False, default=0)
 
+    def __repr__(self):
+        return "<{} name='{}', parent='{}'>".format(
+            self.__class__.__name__, self.name, self.parent.name if self.parent else None)
+
     @validates('name')
     def validate_name(self, key, name):
         assert name is not None and name.strip() != ""
@@ -100,6 +104,15 @@ class Address(Model):
         Model.metadata,
         Column('address_id', String(255), ForeignKey('address.id')),
         Column('tag_id', Integer, ForeignKey('tag.id'))))
+
+    def __repr__(self):
+        return "<{} id='{}', label='{}', type='{}', group='{}', account='{}'>".format(
+            self.__class__.__name__,
+            self.id,
+            self.label,
+            self.type,
+            self.group.name if self.group else None,
+            self.account.name if self.account else None)
 
     @validates('n_tx')
     def validate_n_tx(self, key, n_tx):
