@@ -60,11 +60,16 @@ class ContactsModel(Gtk.TreeStore):
     def is_address(self, path):
         return path is not None and self[path][self.GROUP_ID] == 0
 
-    def can_add_group(self, path):
+    def can_add_group(self, tree_iter):
         return True
 
-    def can_add_subgroup(self, path):
-        return self.is_group(path)
+    def can_add_subgroup(self, tree_iter):
+        return self.is_group(tree_iter)
+
+    def can_remove_group(self, tree_iter):
+        # TODO: recursive remove for self.iter_depth(tree_iter) > 0
+        return  self.is_group(tree_iter) and self.iter_n_children(tree_iter) == 0
+
 
     def add_group(self, tree_iter, name="New group"):
         assert self.can_add_group(tree_iter)
@@ -75,6 +80,14 @@ class ContactsModel(Gtk.TreeStore):
         assert self.can_add_subgroup(tree_iter)
         return self.insert_after(tree_iter, None, (
             self.NEW_GROUP_ID, name, True, None, False, "", 0))
+
+    def remove_group(self, tree_iter):
+        assert self.can_remove_group(tree_iter)
+        assert self.iter_n_children(tree_iter) == 0 # TODO: recursive delete
+        group_id = self[tree_iter][self.GROUP_ID]
+        with self.db_session() as dbs:
+            dbs.query(Group).filter_by(id=group_id).delete()
+        del self[tree_iter]
 
     def set_group_name(self, path, name):
         assert self.is_group(path)
@@ -206,6 +219,9 @@ class ContactsView(View):
         self.add_subgroup_button = button = Gtk.Button(label="Add subgroup")
         self.add_subgroup_button.connect("clicked", self.on_add_subgroup)
         buttons.pack_start(button, True, False, 0)
+        self.remove_group_button = button = Gtk.Button(label="Remove group")
+        self.remove_group_button.connect("clicked", self.on_remove_group)
+        buttons.pack_start(button, True, False, 0)
 
         grid.show_all()
         self.selection.connect("changed", self.on_selection_changed)
@@ -215,6 +231,7 @@ class ContactsView(View):
         model, tree_iter = selection.get_selected()
         self.add_group_button.set_sensitive(model.can_add_group(tree_iter))
         self.add_subgroup_button.set_sensitive(model.can_add_subgroup(tree_iter))
+        self.remove_group_button.set_sensitive(model.can_remove_group(tree_iter))
 
     def on_add_group(self, button):
         model, tree_iter = self.selection.get_selected()
@@ -225,3 +242,7 @@ class ContactsView(View):
         model, tree_iter = self.selection.get_selected()
         new_iter = self.model.add_subgroup(tree_iter)
         self.tree.edit_row(model.get_path(new_iter))
+
+    def on_remove_group(self, button):
+        model, tree_iter = self.selection.get_selected()
+        model.remove_group(tree_iter)
