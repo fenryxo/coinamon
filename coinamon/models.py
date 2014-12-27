@@ -70,7 +70,8 @@ class Group(Model):
 
     def __repr__(self):
         return "<{} name='{}', parent='{}'>".format(
-            self.__class__.__name__, self.name, self.parent.name if self.parent else None)
+            self.__class__.__name__, self.name,
+            self.parent.name if self.parent else self.parent_id)
 
     @validates('name')
     def validate_name(self, key, name):
@@ -111,8 +112,8 @@ class Address(Model):
             self.id,
             self.label,
             self.type,
-            self.group.name if self.group else None,
-            self.account.name if self.account else None)
+            self.group.name if self.group else self.group_id,
+            self.account.name if self.account else self.account_id)
 
     @validates('n_tx')
     def validate_n_tx(self, key, n_tx):

@@ -29,6 +29,7 @@ from ..models import Group, Address
 
 class ContactsModel(Gtk.TreeStore):
     GROUP_ID, KEY, KEY_EDITABLE, LABEL, LABEL_EDITABLE, BALANCE, N_TX = range(7)
+    NEW_GROUP_ID = -1
 
     def __init__(self, db_session):
         Gtk.TreeStore.__init__(self, int, str, bool, str, bool, str, int)
@@ -51,18 +52,42 @@ class ContactsModel(Gtk.TreeStore):
             add()
 
     def is_group(self, path):
-        return path is not None and self[path][ContactsModel.GROUP_ID] != 0
+        return path is not None and self[path][self.GROUP_ID] != 0
+
+    def is_new_group(self, path):
+        return path is not None and self[path][self.GROUP_ID] == self.NEW_GROUP_ID
 
     def is_address(self, path):
-        return path is not None and self[path][ContactsModel.GROUP_ID] == 0
+        return path is not None and self[path][self.GROUP_ID] == 0
+
+    def add_group(self, tree_iter, name="New group"):
+        assert self.can_add_group(tree_iter)
+        return self.insert_after(None, tree_iter, (
+            self.NEW_GROUP_ID, name, True, None, False, "", 0))
 
     def set_group_name(self, path, name):
         assert self.is_group(path)
-        if name and self[path][self.KEY] != name:
+        if not name:
+            raise ValueError("Empty group name not permitted")
+
+        if self[path][self.KEY] != name:
             with self.db_session() as dbs:
-                dbs.query(Group).filter_by(id=self[path][self.GROUP_ID]).update({
-                    Group.name: name
-                    })
+                if self.is_new_group(path):
+                    cursor = path.split(":")
+                    cursor.pop()
+                    if cursor:
+                        parent_id = self[":".join(cursor)][self.GROUP_ID]
+                    else:
+                        parent_id = None
+
+                    group = Group(name=name, parent_id=parent_id)
+                    dbs.add(group)
+                    dbs.commit()
+                    self[path][self.GROUP_ID] = group.id
+                else:
+                    dbs.query(Group).filter_by(id=self[path][self.GROUP_ID]).update({
+                        Group.name: name
+                        })
             self[path][self.KEY] = name
 
     def set_addr_label(self, path, label):
@@ -73,6 +98,9 @@ class ContactsModel(Gtk.TreeStore):
                     Address.label: label
                     })
             self[path][self.LABEL] = label
+
+    def can_add_group(self, path):
+        return True
 
 
 class BaseContactsTree(Gtk.TreeView):
@@ -115,18 +143,29 @@ class ContactsTree(BaseContactsTree):
 
         self.connect("row-activated", self.on_row_activated)
 
-    def on_row_activated(self, tree, path, column):
+    def edit_row(self, path):
         model = self.get_model()
         if model.is_group(path):
-            model[path][ContactsModel.KEY_EDITABLE] = True
-            self.set_cursor(path, self.get_column(ContactsTree.KEY), True)
+            self.expand_to_path(path)
+            model[path][model.KEY_EDITABLE] = True
+            self.set_cursor(path, self.get_column(self.KEY), True)
         elif model.is_address(path):
-            model[path][ContactsModel.LABEL_EDITABLE] = True
-            self.set_cursor(path, self.get_column(ContactsTree.LABEL), True)
+            self.expand_to_path(path)
+            model[path][model.LABEL_EDITABLE] = True
+            self.set_cursor(path, self.get_column(self.LABEL), True)
+
+    def on_row_activated(self, tree, path, column):
+        self.edit_row(path)
 
     def on_key_edited(self, cell, path, text):
         model = self.get_model()
-        model.set_group_name(path, text.strip())
+        try:
+            model.set_group_name(path, text.strip())
+        except ValueError:
+            if model.is_new_group(path):
+                del model[path]
+                return
+
         model[path][model.KEY_EDITABLE] = False
 
     def on_label_edited(self, cell, path, text):
@@ -145,6 +184,26 @@ class ContactsView(View):
         scroll = Gtk.ScrolledWindow(vexpand=True, hexpand=True)
         scroll.add(tree)
         grid.add(scroll)
-        grid.show_all()
+
         self.selection = tree.get_selection()
         self.selection.set_mode(Gtk.SelectionMode.SINGLE)
+
+        buttons = Gtk.ButtonBox(
+            homogeneous=True, layout_style=Gtk.ButtonBoxStyle.CENTER, vexpand=False, hexpand=True)
+        grid.add(buttons)
+        self.add_group_button = button = Gtk.Button(label="Add group")
+        self.add_group_button.connect("clicked", self.on_add_group)
+        buttons.pack_start(button, True, False, 0)
+
+        grid.show_all()
+        self.selection.connect("changed", self.on_selection_changed)
+        self.on_selection_changed(self.selection)
+
+    def on_selection_changed(self, selection):
+        model, tree_iter = selection.get_selected()
+        self.add_group_button.set_sensitive(model.can_add_group(tree_iter))
+
+    def on_add_group(self, button):
+        model, tree_iter = self.selection.get_selected()
+        new_iter = self.model.add_group(tree_iter)
+        self.tree.edit_row(model.get_path(new_iter))
