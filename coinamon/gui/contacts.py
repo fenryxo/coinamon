@@ -56,6 +56,24 @@ class ContactsModel(Gtk.TreeStore):
     def is_address(self, path):
         return path is not None and self[path][ContactsModel.GROUP_ID] == 0
 
+    def set_group_name(self, path, name):
+        assert self.is_group(path)
+        if name and self[path][self.KEY] != name:
+            with self.db_session() as dbs:
+                dbs.query(Group).filter_by(id=self[path][self.GROUP_ID]).update({
+                    Group.name: name
+                    })
+            self[path][self.KEY] = name
+
+    def set_addr_label(self, path, label):
+        assert self.is_address(path)
+        if self[path][self.LABEL] != label:
+            with self.db_session() as dbs:
+                dbs.query(Address).filter_by(id=self[path][self.KEY]).update({
+                    Address.label: label
+                    })
+            self[path][self.LABEL] = label
+
 
 class BaseContactsTree(Gtk.TreeView):
     def __init__(self, model):
@@ -68,15 +86,19 @@ class BaseContactsTree(Gtk.TreeView):
 
 
 class ContactsTree(BaseContactsTree):
+    KEY, LABEL, BALANCE, N_TX = range(4)
+
     def define_columns(self):
         # Group name/address id column
         renderer = Gtk.CellRendererText()
+        renderer.connect("edited", self.on_key_edited)
         column = Gtk.TreeViewColumn("Group/Address", renderer, text=ContactsModel.KEY)
         column.add_attribute(renderer, "editable", ContactsModel.KEY_EDITABLE)
         self.append_column(column)
 
         # Label column
         renderer = Gtk.CellRendererText()
+        renderer.connect("edited", self.on_label_edited)
         column = Gtk.TreeViewColumn("Label", renderer, text=ContactsModel.LABEL)
         column.add_attribute(renderer, "editable", ContactsModel.LABEL_EDITABLE)
         self.append_column(column)
@@ -90,6 +112,27 @@ class ContactsTree(BaseContactsTree):
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Tx", renderer, text=ContactsModel.N_TX)
         self.append_column(column)
+
+        self.connect("row-activated", self.on_row_activated)
+
+    def on_row_activated(self, tree, path, column):
+        model = self.get_model()
+        if model.is_group(path):
+            model[path][ContactsModel.KEY_EDITABLE] = True
+            self.set_cursor(path, self.get_column(ContactsTree.KEY), True)
+        elif model.is_address(path):
+            model[path][ContactsModel.LABEL_EDITABLE] = True
+            self.set_cursor(path, self.get_column(ContactsTree.LABEL), True)
+
+    def on_key_edited(self, cell, path, text):
+        model = self.get_model()
+        model.set_group_name(path, text.strip())
+        model[path][model.KEY_EDITABLE] = False
+
+    def on_label_edited(self, cell, path, text):
+        model = self.get_model()
+        model.set_addr_label(path, text.strip())
+        model[path][model.LABEL_EDITABLE] = False
 
 
 class ContactsView(View):
