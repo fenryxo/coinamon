@@ -26,9 +26,9 @@ from gi.repository import Gtk
 from collections import OrderedDict
 
 
-class MainWindow(Gtk.Window):
+class MainWindow(Gtk.ApplicationWindow):
     def __init__(self):
-        Gtk.Window.__init__(self, title="Coinamon")
+        Gtk.ApplicationWindow.__init__(self, title="Coinamon")
         self.set_default_size(600, 400)
         self.header_bar = Gtk.HeaderBar(visible=True, show_close_button=True)
         self.set_titlebar(self.header_bar)

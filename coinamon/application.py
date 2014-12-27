@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # coding: utf-8
 
 # Copyright 2014 Jiří Janoušek <janousek.jiri@gmail.com>
@@ -23,37 +22,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os.path
-import sys
-from coinamon.db import bind_engine, db_session
+from gi.repository import Gio, Gtk
 
-bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=True)
 
-if len(sys.argv) > 1:
-    command_name = sys.argv[1]
-    from coinamon import cli as module
-    commands = {}
-    base_class_name = "Command"
-    base_class = getattr(module, base_class_name)
-    for name in dir(module):
-        if name != base_class_name:
-            candidate = getattr(module, name)
-            try:
-                if not issubclass(candidate,  base_class):
-                    continue
-            except TypeError:
-                continue
+class Application(Gtk.Application):
+    def __init__(self, db_session):
+        Gtk.Application.__init__(
+            self, application_id="eu.tiliado.Coinamon", flags=Gio.ApplicationFlags.FLAGS_NONE)
+        self.db_session = db_session
+        self.window = None
+        self.connect("activate", self.on_activate)
 
-            if candidate.name == command_name:
-                sys.exit(candidate().run(sys.argv[2:]))
-                break
-            commands[candidate.name] = candidate.label
+    def on_activate(self, app):
+        if self.window:
+            self.window.present()
+            return
 
-    print("Unknown command '{}'. Available commands are:\n".format(command_name))
-    for name in sorted(commands):
-        print(" *  {} - {}".format(name, commands[name]))
-
-else:
-    from coinamon.application import Application
-    app = Application(db_session)
-    sys.exit(app.run(sys.argv))
+        from .gui import MainWindow, HelloWorldView, ContactsView
+        self.window = window = MainWindow()
+        app.add_window(window)
+        window.add_view(HelloWorldView())
+        window.add_view(ContactsView(app.db_session), True)
+        window.present()
