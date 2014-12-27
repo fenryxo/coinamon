@@ -81,9 +81,10 @@ class ContactsModel(Gtk.TreeStore):
         if not name:
             raise ValueError("Empty group name not permitted")
 
-        if self[path][self.KEY] != name:
+        is_new = self.is_new_group(path)
+        if is_new or self[path][self.KEY] != name:
             with self.db_session() as dbs:
-                if self.is_new_group(path):
+                if is_new:
                     cursor = path.split(":")
                     cursor.pop()
                     if cursor:
