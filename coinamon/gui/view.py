@@ -35,6 +35,9 @@ class View:
     def add_buttons(self, header_bar):
         pass
 
+    def update_actions(self):
+        pass
+
 
 class HelloWorldView(View):
     def __init__(self):

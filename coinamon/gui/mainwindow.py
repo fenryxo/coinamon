@@ -22,7 +22,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from gi.repository import Gtk
+from gi.repository import Gio, Gtk
 from collections import OrderedDict
 
 
@@ -42,9 +42,19 @@ class MainWindow(Gtk.ApplicationWindow):
         self.add(self.grid)
         self.grid.show_all()
         self.views = OrderedDict()
+        self.visible_child = None
         self.stack.connect("notify::visible-child-name", self.on_stack_child_changed)
 
     def add_view(self, view, show=False):
+        try:
+            actions = view.__class__.Actions
+            for action in actions.__dict__.values():
+                if isinstance(action, Gio.Action):
+                    self.add_action(action)
+                    print(action)
+        except AttributeError:
+            pass
+
         self.views[view.name] = view
         view.widget.show()
         self.stack.add_titled(view.widget, view.name, view.label)
@@ -52,8 +62,21 @@ class MainWindow(Gtk.ApplicationWindow):
             self.stack.set_visible_child(view.widget)
 
     def on_stack_child_changed(self, stack, *args):
+        if self.visible_child:
+            self.disable_actions(self.views[self.visible_child])
         for child in self.header_bar.get_children():
             self.header_bar.remove(child)
-        name = stack.get_visible_child_name()
+        self.visible_child = name = stack.get_visible_child_name()
         if name:
-            self.views[name].add_buttons(self.header_bar)
+            view = self.views[name]
+            view.add_buttons(self.header_bar)
+            view.update_actions()
+
+    def disable_actions(self, view):
+        try:
+            actions = view.__class__.Actions
+            for action in actions.__dict__.values():
+                if isinstance(action, Gio.Action):
+                    action.set_enabled(False)
+        except AttributeError:
+            pass

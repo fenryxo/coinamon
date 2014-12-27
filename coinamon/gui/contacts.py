@@ -22,7 +22,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from gi.repository import Gtk
+from gi.repository import Gio, Gtk
 from .view import View
 from ..models import Group, Address
 
@@ -294,6 +294,11 @@ class ContactsTree(BaseContactsTree):
 
 
 class ContactsView(View):
+    class Actions:
+        ADD_GROUP = Gio.SimpleAction.new("add_group", None)
+        ADD_SUBGROUP = Gio.SimpleAction.new("add_group", None)
+        REMOVE_GROUP = Gio.SimpleAction.new("remove_group", None)
+
     def __init__(self, db_session):
         widget = grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, row_spacing=10, margin=10)
         super().__init__("contacts", "Contacts", widget)
@@ -307,40 +312,61 @@ class ContactsView(View):
         self.selection = tree.get_selection()
         self.selection.set_mode(Gtk.SelectionMode.SINGLE)
 
-        buttons = Gtk.ButtonBox(
-            homogeneous=True, layout_style=Gtk.ButtonBoxStyle.CENTER, vexpand=False, hexpand=True)
-        grid.add(buttons)
-        self.add_group_button = button = Gtk.Button(label="Add group")
-        self.add_group_button.connect("clicked", self.on_add_group)
-        buttons.pack_start(button, True, False, 0)
-        self.add_subgroup_button = button = Gtk.Button(label="Add subgroup")
-        self.add_subgroup_button.connect("clicked", self.on_add_subgroup)
-        buttons.pack_start(button, True, False, 0)
-        self.remove_group_button = button = Gtk.Button(label="Remove group")
-        self.remove_group_button.connect("clicked", self.on_remove_group)
-        buttons.pack_start(button, True, False, 0)
+        self.Actions.ADD_GROUP.connect("activate", self.on_add_group)
+        self.Actions.ADD_SUBGROUP.connect("activate", self.on_add_subgroup)
+        self.Actions.REMOVE_GROUP.connect("activate", self.on_remove_group)
+        self.buttons = []
+
+        # Add actions
+        button = Gtk.MenuButton()
+        button.set_image(Gtk.Image.new_from_icon_name(
+            "list-add-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
+        menu = Gio.Menu()
+        menu.append("Add group", "win." + self.Actions.ADD_GROUP.get_name())
+        menu.append("Add subgroup", "win." + self.Actions.ADD_SUBGROUP.get_name())
+        button.set_menu_model(menu)
+        button.show_all()
+        self.buttons.append(button)
+
+        # Remove actions
+        button = Gtk.MenuButton()
+        button.set_image(Gtk.Image.new_from_icon_name(
+            "list-remove-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
+        menu = Gio.Menu()
+        menu.append("Remove group", "win." + self.Actions.REMOVE_GROUP.get_name())
+        button.set_menu_model(menu)
+        button.show_all()
+        self.buttons.append(button)
 
         grid.show_all()
         self.selection.connect("changed", self.on_selection_changed)
-        self.on_selection_changed(self.selection)
+        self.update_actions()
         tree.set_reorderable(True)
+
+    def add_buttons(self, header_bar):
+        super().add_buttons(header_bar)
+        for button in self.buttons:
+            header_bar.pack_start(button)
+
+    def update_actions(self):
+        self.on_selection_changed(self.selection)
 
     def on_selection_changed(self, selection):
         model, tree_iter = selection.get_selected()
-        self.add_group_button.set_sensitive(model.can_add_group(tree_iter))
-        self.add_subgroup_button.set_sensitive(model.can_add_subgroup(tree_iter))
-        self.remove_group_button.set_sensitive(model.can_remove_group(tree_iter))
+        self.Actions.ADD_GROUP.set_enabled(model.can_add_group(tree_iter))
+        self.Actions.ADD_SUBGROUP.set_enabled(model.can_add_subgroup(tree_iter))
+        self.Actions.REMOVE_GROUP.set_enabled(model.can_remove_group(tree_iter))
 
-    def on_add_group(self, button):
+    def on_add_group(self, *args):
         model, tree_iter = self.selection.get_selected()
         new_iter = self.model.add_group(tree_iter)
         self.tree.edit_row(model.get_path(new_iter))
 
-    def on_add_subgroup(self, button):
+    def on_add_subgroup(self, *args):
         model, tree_iter = self.selection.get_selected()
         new_iter = self.model.add_subgroup(tree_iter)
         self.tree.edit_row(model.get_path(new_iter))
 
-    def on_remove_group(self, button):
+    def on_remove_group(self, *args):
         model, tree_iter = self.selection.get_selected()
         model.remove_group(tree_iter)
