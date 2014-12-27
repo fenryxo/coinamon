@@ -60,9 +60,20 @@ class ContactsModel(Gtk.TreeStore):
     def is_address(self, path):
         return path is not None and self[path][self.GROUP_ID] == 0
 
+    def can_add_group(self, path):
+        return True
+
+    def can_add_subgroup(self, path):
+        return self.is_group(path)
+
     def add_group(self, tree_iter, name="New group"):
         assert self.can_add_group(tree_iter)
         return self.insert_after(None, tree_iter, (
+            self.NEW_GROUP_ID, name, True, None, False, "", 0))
+
+    def add_subgroup(self, tree_iter, name="New group"):
+        assert self.can_add_subgroup(tree_iter)
+        return self.insert_after(tree_iter, None, (
             self.NEW_GROUP_ID, name, True, None, False, "", 0))
 
     def set_group_name(self, path, name):
@@ -98,9 +109,6 @@ class ContactsModel(Gtk.TreeStore):
                     Address.label: label
                     })
             self[path][self.LABEL] = label
-
-    def can_add_group(self, path):
-        return True
 
 
 class BaseContactsTree(Gtk.TreeView):
@@ -194,6 +202,9 @@ class ContactsView(View):
         self.add_group_button = button = Gtk.Button(label="Add group")
         self.add_group_button.connect("clicked", self.on_add_group)
         buttons.pack_start(button, True, False, 0)
+        self.add_subgroup_button = button = Gtk.Button(label="Add subgroup")
+        self.add_subgroup_button.connect("clicked", self.on_add_subgroup)
+        buttons.pack_start(button, True, False, 0)
 
         grid.show_all()
         self.selection.connect("changed", self.on_selection_changed)
@@ -202,8 +213,14 @@ class ContactsView(View):
     def on_selection_changed(self, selection):
         model, tree_iter = selection.get_selected()
         self.add_group_button.set_sensitive(model.can_add_group(tree_iter))
+        self.add_subgroup_button.set_sensitive(model.can_add_subgroup(tree_iter))
 
     def on_add_group(self, button):
         model, tree_iter = self.selection.get_selected()
         new_iter = self.model.add_group(tree_iter)
+        self.tree.edit_row(model.get_path(new_iter))
+
+    def on_add_subgroup(self, button):
+        model, tree_iter = self.selection.get_selected()
+        new_iter = self.model.add_subgroup(tree_iter)
         self.tree.edit_row(model.get_path(new_iter))
