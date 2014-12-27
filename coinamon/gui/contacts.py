@@ -68,8 +68,7 @@ class ContactsModel(Gtk.TreeStore):
 
     def can_remove_group(self, tree_iter):
         # TODO: recursive remove for self.iter_depth(tree_iter) > 0
-        return  self.is_group(tree_iter) and self.iter_n_children(tree_iter) == 0
-
+        return self.is_group(tree_iter) and self.iter_n_children(tree_iter) == 0
 
     def add_group(self, tree_iter, name="New group"):
         assert self.can_add_group(tree_iter)
@@ -83,7 +82,7 @@ class ContactsModel(Gtk.TreeStore):
 
     def remove_group(self, tree_iter):
         assert self.can_remove_group(tree_iter)
-        assert self.iter_n_children(tree_iter) == 0 # TODO: recursive delete
+        assert self.iter_n_children(tree_iter) == 0  # TODO: recursive delete
         group_id = self[tree_iter][self.GROUP_ID]
         with self.db_session() as dbs:
             dbs.query(Group).filter_by(id=group_id).delete()
@@ -123,6 +122,104 @@ class ContactsModel(Gtk.TreeStore):
                     Address.label: label
                     })
             self[path][self.LABEL] = label
+
+    def can_move(self, source_path, dest_path):
+        try:
+            self.get_iter(source_path)  # validate path
+        except ValueError as e:
+            print(type(e), e)
+            return False
+
+        if source_path.is_ancestor(dest_path):
+            return False
+
+        try:
+            self.get_iter(dest_path)  # validate path
+            return dest_path.get_depth() > 1 or self[source_path][self.GROUP_ID] > 0
+        except ValueError:
+            path = dest_path.copy()
+            path.up()
+            return self[path][self.GROUP_ID] != 0
+
+    def copy_children(self, source_iter, dest_iter):
+        child_iter = self.iter_children(source_iter)
+        while child_iter is not None:
+            child_dest_iter = self.append(dest_iter, self[child_iter][:])
+            self.copy_children(child_iter, child_dest_iter)
+            child_iter = self.iter_next(child_iter)
+
+    def update_parent(self, tree_iter):
+        parent = self.get_path(tree_iter)
+        if not parent.up():
+            raise ValueError(parent)
+        if parent is None:
+            assert self.is_group(tree_iter)
+            parent_id = None
+        else:
+            assert self.is_group(parent)
+            parent_id = self[parent][self.GROUP_ID]
+
+        with self.db_session() as dbs:
+            if self.is_group(tree_iter):
+                dbs.query(Group).filter_by(id=self[tree_iter][self.GROUP_ID]).update({
+                    Group.parent_id: parent_id
+                    })
+            elif self.is_address(tree_iter):
+                dbs.query(Address).filter_by(id=self[tree_iter][self.KEY]).update({
+                    Address.group_id: parent_id
+                    })
+            else:
+                raise NotImplementedError
+
+    def _get_path_from_selection_data(self, selection_data):
+        #  this crashes: result, model, path = Gtk.tree_get_row_drag_data(selection_data)
+        data = selection_data.get_data()
+        try:
+            return Gtk.TreePath.new_from_string(data.rsplit(b"\x00", 2)[-2].decode("ascii"))
+        except Exception as e:
+            raise ValueError("Error for data '{}': {}".format(data, e))
+
+    def do_row_drop_possible(self, dest_path, selection_data):
+        try:
+            source_path = self._get_path_from_selection_data(selection_data)
+        except ValueError as e:
+            print(e)
+            return False
+
+        return self.can_move(source_path, dest_path)
+
+    def do_drag_data_received(self, dest_path, selection_data):
+        try:
+            source_path = self._get_path_from_selection_data(selection_data)
+        except ValueError as e:
+            print(e)
+            return False
+
+        if not self.can_move(source_path, dest_path):
+            return False
+
+        source_iter = self.get_iter(source_path)
+        try:
+            dest_iter = self.get_iter(dest_path)  # validate path
+            insert_as_child = False
+        except ValueError:
+            dest_path.up()
+            try:
+                dest_iter = self.get_iter(dest_path)
+            except ValueError as e:
+                print(e)
+                return False
+            insert_as_child = True
+
+        row_data = self[source_path][:]
+        if insert_as_child:
+            tree_iter = self.insert_before(dest_iter, None, row_data)
+        else:
+            tree_iter = self.insert_before(None, dest_iter, row_data)
+
+        self.update_parent(tree_iter)
+        self.copy_children(source_iter, tree_iter)
+        return True
 
 
 class BaseContactsTree(Gtk.TreeView):
@@ -226,6 +323,7 @@ class ContactsView(View):
         grid.show_all()
         self.selection.connect("changed", self.on_selection_changed)
         self.on_selection_changed(self.selection)
+        tree.set_reorderable(True)
 
     def on_selection_changed(self, selection):
         model, tree_iter = selection.get_selected()
