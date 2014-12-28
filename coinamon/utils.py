@@ -28,6 +28,21 @@ import re
 ADDRESS_RE = re.compile("^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{30,}$")
 
 
+def parse_blockchain_contacts_list(contacts_list, skip_lines=0, step=0, errors=None):
+    lines = [line for line in (line.strip() for line in contacts_list.splitlines()) if line]
+    mod = 2 + step
+    for i, line in enumerate(lines[skip_lines:]):
+        step = i % mod
+        if step == 0:
+            label = line
+        elif step == 1:
+            address = line
+            if ADDRESS_RE.match(address):
+                yield label, address
+            elif errors is not None:
+                errors.append((label, address))
+
+
 def parse_blockchain_address_list(address_list, skip_lines=0, step=2, errors=None):
     lines = [line for line in (line.strip() for line in address_list.splitlines()) if line]
     for line in lines[skip_lines::1+step]:

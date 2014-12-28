@@ -27,6 +27,50 @@ from .. import utils
 
 
 class FnctionsTestCase(unittest.TestCase):
+    def test_parse_blockchain_contacts_list(self):
+        CONTACTS = """\
+        Dash - Test
+        1FudEVgHetFdDeWtS6uq7k2cjiEUNw129N
+
+        Happy Daisy
+        1Pvt1GNb92W35gXshzwUCG5kpPsBg4ACtA
+
+        Bill Gates
+        19hz4WsAEKdP1fcumazpyBYrt8RMNNJium
+
+        Bitcoin Master
+        1KopQ3e9pFKEwTmriSvia1TyJc1VJ5KXLF
+
+        Master Yoda
+        1ABnFxaVGQ1ccefekKTXUVPNBiTLy9ytD6
+
+        Coinbase Test
+        13kqo1oaQskAHBb6krsczYBTtkeMpEEVsK
+
+        Prince of Persia
+        1G25qfo8aH1SHRfy5VuVYitH9vevyfvse7
+        """
+
+        EXPECTED = [
+            ('Dash - Test', '1FudEVgHetFdDeWtS6uq7k2cjiEUNw129N'),
+            ('Happy Daisy', '1Pvt1GNb92W35gXshzwUCG5kpPsBg4ACtA'),
+            ('Bill Gates', '19hz4WsAEKdP1fcumazpyBYrt8RMNNJium'),
+            ('Bitcoin Master', '1KopQ3e9pFKEwTmriSvia1TyJc1VJ5KXLF'),
+            ('Master Yoda', '1ABnFxaVGQ1ccefekKTXUVPNBiTLy9ytD6'),
+            ('Coinbase Test', '13kqo1oaQskAHBb6krsczYBTtkeMpEEVsK'),
+            ('Prince of Persia', '1G25qfo8aH1SHRfy5VuVYitH9vevyfvse7'),
+            ]
+
+        errors = []
+        self.assertEqual(
+            EXPECTED,
+            list(utils.parse_blockchain_contacts_list(CONTACTS, errors=errors)))
+        self.assertFalse(errors)
+
+        self.assertEqual(
+            EXPECTED,
+            list(utils.parse_blockchain_contacts_list("  \n  \n" + CONTACTS + "  \n  \n")))
+
     def test_parse_blockchain_address_list(self):
         ADDRESSES = """\
             Pikachu - 1AhB4xTDhFt2hdDeUajP7gnt7soFwYiVL9
