@@ -59,14 +59,14 @@ class ContactsModel(Gtk.TreeStore):
 
             add()
 
-    def is_group(self, path):
-        return path is not None and self[path][self.GROUP_ID] != 0
+    def is_group(self, tree_iter):
+        return tree_iter is not None and self[tree_iter][self.GROUP_ID] != 0
 
-    def is_new_group(self, path):
-        return path is not None and self[path][self.GROUP_ID] == self.NEW_GROUP_ID
+    def is_new_group(self, tree_iter):
+        return tree_iter is not None and self[tree_iter][self.GROUP_ID] == self.NEW_GROUP_ID
 
-    def is_address(self, path):
-        return path is not None and self[path][self.GROUP_ID] == 0
+    def is_address(self, tree_iter):
+        return tree_iter is not None and self[tree_iter][self.GROUP_ID] == 0
 
     def can_add_contact(self, tree_iter):
         return tree_iter is not None
@@ -181,15 +181,16 @@ class ContactsModel(Gtk.TreeStore):
             child_iter = self.iter_next(child_iter)
 
     def update_parent(self, tree_iter):
-        parent = self.get_path(tree_iter)
-        if not parent.up():
-            raise ValueError(parent)
-        if parent is None:
+        parent_path = self.get_path(tree_iter)
+        if not parent_path.up():
+            raise ValueError(parent_path)
+        if parent_path.get_depth() == 0:
             assert self.is_group(tree_iter)
             parent_id = None
         else:
-            assert self.is_group(parent)
-            parent_id = self[parent][self.GROUP_ID]
+            parent_iter = self.get_iter(parent_path)
+            assert self.is_group(parent_iter)
+            parent_id = self[parent_iter][self.GROUP_ID]
 
         with self.db_session() as dbs:
             if self.is_group(tree_iter):
