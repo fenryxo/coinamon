@@ -45,6 +45,7 @@ class ContactsTree(BaseContactsTree):
         renderer.connect("edited", self.on_key_edited)
         column = Gtk.TreeViewColumn("Group/Address", renderer, text=ContactsModel.KEY)
         column.add_attribute(renderer, "editable", ContactsModel.KEY_EDITABLE)
+        column.set_sort_column_id(ContactsModel.KEY_SORT)
         self.append_column(column)
 
         # Label column
@@ -52,16 +53,19 @@ class ContactsTree(BaseContactsTree):
         renderer.connect("edited", self.on_label_edited)
         column = Gtk.TreeViewColumn("Label", renderer, text=ContactsModel.LABEL)
         column.add_attribute(renderer, "editable", ContactsModel.LABEL_EDITABLE)
+        column.set_sort_column_id(ContactsModel.LABEL)
         self.append_column(column)
 
         # Balance column
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Balance", renderer, text=ContactsModel.BALANCE)
+        column.set_sort_column_id(ContactsModel.BALANCE)
         self.append_column(column)
 
         # N tx column
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Tx", renderer, text=ContactsModel.N_TX)
+        column.set_sort_column_id(ContactsModel.N_TX)
         self.append_column(column)
 
         self.connect("row-activated", self.on_row_activated)

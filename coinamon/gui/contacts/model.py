@@ -36,11 +36,11 @@ class DuplicateAddressError(ValueError):
 
 
 class ContactsModel(Gtk.TreeStore):
-    GROUP_ID, KEY, KEY_EDITABLE, LABEL, LABEL_EDITABLE, BALANCE, N_TX = range(7)
+    GROUP_ID, KEY, KEY_SORT, KEY_EDITABLE, LABEL, LABEL_EDITABLE, BALANCE, N_TX = range(8)
     NEW_GROUP_ID = -1
 
     def __init__(self, db_session):
-        Gtk.TreeStore.__init__(self, int, str, bool, str, bool, str, int)
+        Gtk.TreeStore.__init__(self, int, str, str, bool, str, bool, str, int)
         self.db_session = db_session
 
     def load_data(self):
@@ -49,13 +49,15 @@ class ContactsModel(Gtk.TreeStore):
             def add(parent_id=None, parent_iter=None):
                 for group in dbs.query(Group).filter_by(parent_id=parent_id).order_by(Group.name):
                     row_iter = self.append(parent_iter, row=(
-                        group.id, group.name, False, None, False, str(group.balance), group.n_tx))
+                        group.id, group.name, "1:" + group.name, False, None, False,
+                        str(group.balance), group.n_tx))
                     add(group.id, row_iter)
                     addresses = dbs.query(Address).filter_by(group_id=group.id) \
                         .order_by(Address.id, Address.label)
                     for addr in addresses:
                         self.append(row_iter, row=(
-                            0, addr.id, False, addr.label, False, str(addr.balance), addr.n_tx))
+                            0, addr.id, "2:" + addr.id, False, addr.label, False,
+                            str(addr.balance), addr.n_tx))
 
             add()
 
@@ -100,17 +102,17 @@ class ContactsModel(Gtk.TreeStore):
                 raise DuplicateAddressError(address, addr.label, label)
 
         return self.insert_before(tree_iter, None, (
-            0, address, False, label, False, "", 0))
+            0, address, "2:" + address, False, label, False, "", 0))
 
     def add_group(self, tree_iter, name="New group"):
         assert self.can_add_group(tree_iter)
         return self.insert_after(None, tree_iter, (
-            self.NEW_GROUP_ID, name, True, None, False, "", 0))
+            self.NEW_GROUP_ID, name, "1:" + name, True, None, False, "", 0))
 
     def add_subgroup(self, tree_iter, name="New group"):
         assert self.can_add_subgroup(tree_iter)
         return self.insert_after(tree_iter, None, (
-            self.NEW_GROUP_ID, name, True, None, False, "", 0))
+            self.NEW_GROUP_ID, name, "1:" + name, True, None, False, "", 0))
 
     def remove_group(self, tree_iter):
         assert self.can_remove_group(tree_iter)
@@ -145,6 +147,7 @@ class ContactsModel(Gtk.TreeStore):
                         Group.name: name
                         })
             self[path][self.KEY] = name
+            self[path][self.KEY_SORT] = "1:" + name
 
     def set_addr_label(self, path, label):
         assert self.is_address(path)
