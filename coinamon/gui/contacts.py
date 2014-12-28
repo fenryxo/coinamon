@@ -296,7 +296,7 @@ class ContactsTree(BaseContactsTree):
 class ContactsView(View):
     class Actions:
         ADD_GROUP = Gio.SimpleAction.new("add_group", None)
-        ADD_SUBGROUP = Gio.SimpleAction.new("add_group", None)
+        ADD_SUBGROUP = Gio.SimpleAction.new("add_subgroup", None)
         REMOVE_GROUP = Gio.SimpleAction.new("remove_group", None)
 
     def __init__(self, db_session):
