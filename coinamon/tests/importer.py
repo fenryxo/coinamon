@@ -92,36 +92,3 @@ class ContactsImporterTest(DatabaseMixin, unittest.TestCase):
         self.assertEqual(cm.exception.unique, 0)
         self.assertEqual(cm.exception.duplicate, 5)
         self.assertEqual(cm.exception.errors, 0)
-
-
-class BlockchainWalletImporterTest(DatabaseMixin, unittest.TestCase):
-    def test_import_contacts(self):
-        ADDRESSES = """\
-            Pikachu - 1AhB4xTDhFt2hdDeUajP7gnt7soFwYiVL9
-            0.00 BTC
-            Actions
-            Charmander - 15ADxNhKLSKMpzSoAKmVjXBKF62ErwynKU
-            0.00 BTC
-            Actions
-            Charmeleon - 1Hugs3Zo3b1vZ36FCVRbwW5QfYTChwF9cZ
-            0.00 BTC
-            Actions
-            Yes - No - 1MYR9ovdGPz88KwSM55Z2rnRStprh2moGk
-            0.00 BTC
-            Actions
-            18Wwrz1p4cW9UnxoGDNUegY7doSnfC4ZhZ"""
-        contacts = [
-            ('Pikachu', '1AhB4xTDhFt2hdDeUajP7gnt7soFwYiVL9'),
-            ('Charmander', '15ADxNhKLSKMpzSoAKmVjXBKF62ErwynKU'),
-            ('Charmeleon', '1Hugs3Zo3b1vZ36FCVRbwW5QfYTChwF9cZ'),
-            ('Yes - No', '1MYR9ovdGPz88KwSM55Z2rnRStprh2moGk'),
-            (None, '18Wwrz1p4cW9UnxoGDNUegY7doSnfC4ZhZ'),
-            ]
-        self.assertEqual(
-            importer.BlockchainWalletImporter().import_contacts(ADDRESSES), contacts)
-
-        with self.assertRaises(importer.CompleteImportError) as cm:
-            importer.BlockchainWalletImporter().import_contacts(ADDRESSES)
-        self.assertEqual(cm.exception.unique, [])
-        self.assertEqual(cm.exception.duplicate, contacts)
-        self.assertEqual(cm.exception.errors, [])

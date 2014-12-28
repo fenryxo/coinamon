@@ -77,18 +77,3 @@ class ContactsImporter:
             else:
                 raise CompleteImportError(errors, unique, duplicate)
         return unique
-
-
-class BlockchainWalletImporter(ContactsImporter):
-    name = "blockchain"
-    label = "Blockchain Wallet"
-
-    def import_contacts(self, data):
-        from .utils import parse_blockchain_address_list
-        errors = []
-        contacts = tuple(parse_blockchain_address_list(data, errors=errors))
-        if contacts:
-            unique, duplicate = self.save_contacts(contacts)
-        else:
-            unique = duplicate = None
-        return self.check_result(unique, duplicate, errors)
