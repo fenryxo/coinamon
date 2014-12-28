@@ -83,6 +83,29 @@ class ContactsModel(Gtk.TreeStore):
         # TODO: recursive remove for self.iter_depth(tree_iter) > 0
         return self.is_group(tree_iter) and self.iter_n_children(tree_iter) == 0
 
+    def walk_tree(self, start_iter=None):
+        tree_iter = pr(start_iter or self.get_iter_first())
+        while tree_iter:
+            yield tree_iter
+            if self.iter_has_child(tree_iter):
+                child_iter = self.iter_children(tree_iter) # go right
+                yield from self.walk_tree(start_iter=child_iter)
+            tree_iter = self.iter_next(tree_iter)  # go down
+
+    def lookup_group(self, group_id, start_iter=None):
+        assert group_id > 0
+        for tree_iter in self.walk_tree(start_iter):
+            if self[tree_iter][self.GROUP_ID] == group_id:
+                return tree_iter
+        return None
+
+    def lookup_address(self, address, start_iter=None):
+        assert address
+        for tree_iter in self.walk_tree(start_iter):
+            if self[tree_iter][self.GROUP_ID] == 0 and self[tree_iter][self.KEY] == address:
+                return tree_iter
+        return None
+
     def add_contact(self, tree_iter, address, label):
         assert self.can_add_group(tree_iter)
         if not self.is_group(tree_iter):
