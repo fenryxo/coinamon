@@ -28,4 +28,5 @@ from .view import HelloWorldView  # noqa
 from .contacts import ContactsView  # noqa
 from .mainwindow import MainWindow  # noqa
 
+
 signal.signal(signal.SIGINT, signal.SIG_DFL)

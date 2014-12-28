@@ -24,11 +24,12 @@
 
 from gi.repository import Gio, Gtk
 from ..view import View
-from . import ContactsModel, ContactsTree
+from . import ContactsModel, DuplicateAddressError, ContactsTree, AddContactDialog
 
 
 class ContactsView(View):
     class Actions:
+        ADD_CONTACT = Gio.SimpleAction.new("add_contact", None)
         ADD_GROUP = Gio.SimpleAction.new("add_group", None)
         ADD_SUBGROUP = Gio.SimpleAction.new("add_subgroup", None)
         REMOVE_GROUP = Gio.SimpleAction.new("remove_group", None)
@@ -46,6 +47,7 @@ class ContactsView(View):
         self.selection = tree.get_selection()
         self.selection.set_mode(Gtk.SelectionMode.SINGLE)
 
+        self.Actions.ADD_CONTACT.connect("activate", self.on_add_contact)
         self.Actions.ADD_GROUP.connect("activate", self.on_add_group)
         self.Actions.ADD_SUBGROUP.connect("activate", self.on_add_subgroup)
         self.Actions.REMOVE_GROUP.connect("activate", self.on_remove_group)
@@ -56,6 +58,7 @@ class ContactsView(View):
         button.set_image(Gtk.Image.new_from_icon_name(
             "list-add-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
         menu = Gio.Menu()
+        menu.append("Add contact", "win." + self.Actions.ADD_CONTACT.get_name())
         menu.append("Add group", "win." + self.Actions.ADD_GROUP.get_name())
         menu.append("Add subgroup", "win." + self.Actions.ADD_SUBGROUP.get_name())
         button.set_menu_model(menu)
@@ -87,9 +90,37 @@ class ContactsView(View):
 
     def on_selection_changed(self, selection):
         model, tree_iter = selection.get_selected()
+        self.Actions.ADD_CONTACT.set_enabled(model.can_add_contact(tree_iter))
         self.Actions.ADD_GROUP.set_enabled(model.can_add_group(tree_iter))
         self.Actions.ADD_SUBGROUP.set_enabled(model.can_add_subgroup(tree_iter))
         self.Actions.REMOVE_GROUP.set_enabled(model.can_remove_group(tree_iter))
+
+    def on_add_contact(self, *args):
+        model, tree_iter = self.selection.get_selected()
+        dialog = AddContactDialog(self.widget.get_toplevel())
+        try:
+            while True:
+                result = dialog.run()
+                if result == Gtk.ResponseType.OK:
+                    address = dialog.address_entry.get_text().strip()
+                    label = dialog.label_entry.get_text().strip()
+                    if not address:
+                        dialog.show_error("Address must not be empty.")
+                    else:
+                        try:
+                            addr_iter = self.model.add_contact(tree_iter, address, label)
+                            addr_path = self.model.get_path(addr_iter)
+                            self.tree.expand_to_path(addr_path)
+                            self.tree.set_cursor(addr_path, None, False)
+                            break
+                        except DuplicateAddressError as e:
+                            t = "The address '{}' is already in the database with a label '{}'." \
+                                if e.old_label else "The address '{}' is already in the database."
+                            dialog.show_error(t.format(e.address, e.old_label))
+                else:
+                    break
+        finally:
+            dialog.destroy()
 
     def on_add_group(self, *args):
         model, tree_iter = self.selection.get_selected()

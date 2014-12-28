@@ -22,8 +22,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from sqlalchemy.exc import IntegrityError
 from gi.repository import Gtk
 from ...models import Group, Address
+
+
+class DuplicateAddressError(ValueError):
+    def __init__(self, address, old_label, new_label):
+        super().__init__(address, old_label, new_label)
+        self.address = address
+        self.old_label = old_label
+        self.new_label = new_label
 
 
 class ContactsModel(Gtk.TreeStore):
@@ -59,6 +68,9 @@ class ContactsModel(Gtk.TreeStore):
     def is_address(self, path):
         return path is not None and self[path][self.GROUP_ID] == 0
 
+    def can_add_contact(self, tree_iter):
+        return tree_iter is not None
+
     def can_add_group(self, tree_iter):
         return True
 
@@ -68,6 +80,27 @@ class ContactsModel(Gtk.TreeStore):
     def can_remove_group(self, tree_iter):
         # TODO: recursive remove for self.iter_depth(tree_iter) > 0
         return self.is_group(tree_iter) and self.iter_n_children(tree_iter) == 0
+
+    def add_contact(self, tree_iter, address, label):
+        assert self.can_add_group(tree_iter)
+        if not self.is_group(tree_iter):
+            path = self.get_path(tree_iter)
+            path.up()
+            tree_iter = self.get_iter(path)
+        assert self.is_group(tree_iter)
+
+        try:
+            with self.db_session() as dbs:
+                group_id = self[tree_iter][self.GROUP_ID]
+                dbs.add(Address(
+                    id=address, label=label, group_id=group_id, type=Address.TYPE_CONTACT))
+        except IntegrityError:
+            with self.db_session() as dbs:
+                addr = dbs.query(Address).filter_by(id=address).one()
+                raise DuplicateAddressError(address, addr.label, label)
+
+        return self.insert_before(tree_iter, None, (
+            0, address, False, label, False, "", 0))
 
     def add_group(self, tree_iter, name="New group"):
         assert self.can_add_group(tree_iter)
