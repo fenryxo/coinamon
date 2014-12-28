@@ -30,6 +30,8 @@ class BaseContactsTree(Gtk.TreeView):
     def __init__(self, model):
         super().__init__(model=model)
         self.define_columns()
+        self.set_enable_tree_lines(True)
+        self.set_grid_lines(Gtk.TreeViewGridLines.HORIZONTAL)
 
     def define_columns(self):
         raise NotImplementedError(
