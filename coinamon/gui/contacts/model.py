@@ -46,20 +46,22 @@ class ContactsModel(Gtk.TreeStore):
     def load_data(self):
         self.clear()
         with self.db_session() as dbs:
-            def add(parent_id=None, parent_iter=None):
-                for group in dbs.query(Group).filter_by(parent_id=parent_id).order_by(Group.name):
-                    row_iter = self.append(parent_iter, row=(
-                        group.id, group.name, "1:" + group.name, False, None, False,
-                        str(group.balance), group.n_tx))
-                    add(group.id, row_iter)
-                    addresses = dbs.query(Address).filter_by(group_id=group.id) \
-                        .order_by(Address.id, Address.label)
-                    for addr in addresses:
-                        self.append(row_iter, row=(
-                            0, addr.id, "2:" + addr.id, False, addr.label, False,
-                            str(addr.balance), addr.n_tx))
+            old_level = 0
+            iters = [None]
+            for level, group, addr in Group.walk_tree(dbs, level=old_level, addresses=True):
+                if level < old_level:
+                    del iters[level+1:]
 
-            add()
+                old_level = level
+                tree_iter = iters[level]
+                if group:
+                    iters.append(self.append(tree_iter, row=(
+                        group.id, group.name, "1:" + group.name, False, None, False,
+                        str(group.balance), group.n_tx)))
+                elif addr:
+                    self.append(tree_iter, row=(
+                        0, addr.id, "2:" + addr.id, False, addr.label, False,
+                        str(addr.balance), addr.n_tx))
 
     def is_group(self, tree_iter):
         return tree_iter is not None and self[tree_iter][self.GROUP_ID] != 0
