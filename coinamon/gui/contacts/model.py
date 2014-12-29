@@ -84,7 +84,7 @@ class ContactsModel(Gtk.TreeStore):
         return self.is_group(tree_iter) and self.iter_n_children(tree_iter) == 0
 
     def walk_tree(self, start_iter=None):
-        tree_iter = pr(start_iter or self.get_iter_first())
+        tree_iter = start_iter or self.get_iter_first()
         while tree_iter:
             yield tree_iter
             if self.iter_has_child(tree_iter):
