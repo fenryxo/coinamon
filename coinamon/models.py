@@ -83,6 +83,20 @@ class Group(Model):
         assert n_tx >= 0
         return n_tx
 
+    @classmethod
+    def walk_tree(cls, session, start_id=None, level=0, *, addresses=False):
+        for group in session.query(cls).filter_by(parent_id=start_id).order_by(cls.name):
+            if addresses:
+                yield level, group, None
+            else:
+                yield level, group
+            yield from cls.walk_tree(session, group.id, level + 1, addresses=addresses)
+            if addresses:
+                result = session.query(Address).filter_by(group_id=group.id) \
+                    .order_by(Address.id, Address.label)
+                for addr in result:
+                    yield level + 1, None, addr
+
 
 class Address(Model):
     TYPE_RECEIVE = "receive"
