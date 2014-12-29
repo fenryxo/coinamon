@@ -31,7 +31,10 @@ class Command:
     name = None
     description = None
 
-    def run(self, argv):
+    def __init__(self, db_session):
+        self.db_session = db_session
+
+    def run(self, prog, argv):
         raise NotImplementedError("{}.run not implemented.".format(self.__class__.__name__))
 
 
@@ -54,7 +57,7 @@ class ImportContactsCommand(Command):
                     continue
                 importers[candidate_class.name] = candidate_class()
 
-    def run(self, argv):
+    def run(self, prog, argv):
         try:
             importer_name = argv[0]
         except IndexError:
