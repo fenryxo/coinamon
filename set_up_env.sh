@@ -1,6 +1,6 @@
 check ()
 {
-    flake8 --max-line-length=99 "$@" .
+    python3 /usr/bin/flake8 --max-line-length=99 --ignore=H101 "$@" .
 }
 
 coinamon()
