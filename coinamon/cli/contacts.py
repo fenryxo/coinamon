@@ -48,3 +48,25 @@ class ListGroupsCommand(Command):
                     print("{}{: 2d} {}".format("    " * level, group.id, group.name))
                 else:
                     print("{}+ {}".format("    " * level, group.name))
+
+
+class ListContactsCommand(Command):
+    name = "list_contacts"
+    label = "List your contacts"
+
+    def run(self, prog, args):
+        parser = argparse.ArgumentParser(prog, description=self.label)
+        parser.add_argument(
+            '-i', '--show-id', action='store_true', default=False,
+            help='Print also id of groups')
+        args = parser.parse_args(args)
+
+        with self.db_session() as dbs:
+            for level, group, addr in Group.walk_tree(dbs, addresses=True):
+                if group:
+                    if args.show_id:
+                        print("{}+ {} #{}".format("  " * level, group.name, group.id))
+                    else:
+                        print("{}+ {}".format("  " * level, group.name))
+                elif addr:
+                    print("{}- {} {}".format("  " * level, addr.id, addr.label))
