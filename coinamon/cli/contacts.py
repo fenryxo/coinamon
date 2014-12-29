@@ -23,6 +23,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
+import json
 
 from coinamon.cli import Command
 from coinamon.models import Group
@@ -70,3 +71,38 @@ class ListContactsCommand(Command):
                         print("{}+ {}".format("  " * level, group.name))
                 elif addr:
                     print("{}- {} {}".format("  " * level, addr.id, addr.label))
+
+
+class DumpContactsCommand(Command):
+    name = "dump_contacts"
+    label = "Dump contacts as JSON"
+
+    def run(self, prog, args):
+        parser = argparse.ArgumentParser(prog, description=self.label)
+        parser.add_argument(
+            '-c', '--compact', action='store_true', default=False,
+            help='Use compact format with less white space.')
+        args = parser.parse_args(args)
+
+        groups = []
+        contacts = []
+        with self.db_session() as dbs:
+            for level, group, addr in Group.walk_tree(dbs, addresses=True):
+                if group:
+                    groups.append(
+                        {
+                            "id": group.id,
+                            "name": group.name
+                        })
+                elif addr:
+                    contacts.append(
+                        {
+                            "address": addr.id,
+                            "label": addr.label,
+                            "group_id": addr.group_id
+                        })
+        data = {"groups": groups, "contacts": contacts}
+        if args.compact:
+            print(json.dumps(data, separators=(',', ':')))
+        else:
+            print(json.dumps(data, sort_keys=True, indent=2))
