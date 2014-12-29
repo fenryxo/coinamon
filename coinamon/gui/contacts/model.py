@@ -22,9 +22,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from sqlalchemy.exc import IntegrityError
 from gi.repository import Gtk
-from ...models import Group, Address
+from sqlalchemy.exc import IntegrityError
+
+from coinamon.models import Address
+from coinamon.models import Group
 
 
 class DuplicateAddressError(ValueError):
@@ -50,7 +52,7 @@ class ContactsModel(Gtk.TreeStore):
             iters = [None]
             for level, group, addr in Group.walk_tree(dbs, level=old_level, addresses=True):
                 if level < old_level:
-                    del iters[level+1:]
+                    del iters[level + 1:]
 
                 old_level = level
                 tree_iter = iters[level]
@@ -90,7 +92,7 @@ class ContactsModel(Gtk.TreeStore):
         while tree_iter:
             yield tree_iter
             if self.iter_has_child(tree_iter):
-                child_iter = self.iter_children(tree_iter) # go right
+                child_iter = self.iter_children(tree_iter)  # go right
                 yield from self.walk_tree(start_iter=child_iter)
             tree_iter = self.iter_next(tree_iter)  # go down
 
@@ -168,8 +170,9 @@ class ContactsModel(Gtk.TreeStore):
                     dbs.commit()
                     self[path][self.GROUP_ID] = group.id
                 else:
-                    dbs.query(Group).filter_by(id=self[path][self.GROUP_ID]).update({
-                        Group.name: name
+                    dbs.query(Group).filter_by(id=self[path][self.GROUP_ID]).update(
+                        {
+                            Group.name: name
                         })
             self[path][self.KEY] = name
             self[path][self.KEY_SORT] = "1:" + name
@@ -178,8 +181,9 @@ class ContactsModel(Gtk.TreeStore):
         assert self.is_address(path)
         if self[path][self.LABEL] != label:
             with self.db_session() as dbs:
-                dbs.query(Address).filter_by(id=self[path][self.KEY]).update({
-                    Address.label: label
+                dbs.query(Address).filter_by(id=self[path][self.KEY]).update(
+                    {
+                        Address.label: label
                     })
             self[path][self.LABEL] = label
 
@@ -222,12 +226,14 @@ class ContactsModel(Gtk.TreeStore):
 
         with self.db_session() as dbs:
             if self.is_group(tree_iter):
-                dbs.query(Group).filter_by(id=self[tree_iter][self.GROUP_ID]).update({
-                    Group.parent_id: parent_id
+                dbs.query(Group).filter_by(id=self[tree_iter][self.GROUP_ID]).update(
+                    {
+                        Group.parent_id: parent_id
                     })
             elif self.is_address(tree_iter):
-                dbs.query(Address).filter_by(id=self[tree_iter][self.KEY]).update({
-                    Address.group_id: parent_id
+                dbs.query(Address).filter_by(id=self[tree_iter][self.KEY]).update(
+                    {
+                        Address.group_id: parent_id
                     })
             else:
                 raise NotImplementedError

@@ -23,7 +23,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from gi.repository import Gtk
-from . import ContactsModel
+
+from coinamon.gui.contacts import ContactsModel
 
 
 class BaseContactsTree(Gtk.TreeView):

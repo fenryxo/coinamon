@@ -22,7 +22,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from gi.repository import Gio, Gtk
+from gi.repository import Gio
+from gi.repository import Gtk
 
 
 class Application(Gtk.Application):
@@ -38,7 +39,9 @@ class Application(Gtk.Application):
             self.window.present()
             return
 
-        from .gui import MainWindow, HelloWorldView, ContactsView
+        from coinamon.gui import ContactsView
+        from coinamon.gui import HelloWorldView
+        from coinamon.gui import MainWindow
         self.window = window = MainWindow()
         app.add_window(window)
         window.add_view(HelloWorldView())

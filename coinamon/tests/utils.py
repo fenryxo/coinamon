@@ -23,7 +23,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
-from .. import utils
+
+from coinamon import utils
 
 
 class FnctionsTestCase(unittest.TestCase):
@@ -51,14 +52,15 @@ class FnctionsTestCase(unittest.TestCase):
         1G25qfo8aH1SHRfy5VuVYitH9vevyfvse7
         """
 
-        EXPECTED = [
-            ('Dash - Test', '1FudEVgHetFdDeWtS6uq7k2cjiEUNw129N'),
-            ('Happy Daisy', '1Pvt1GNb92W35gXshzwUCG5kpPsBg4ACtA'),
-            ('Bill Gates', '19hz4WsAEKdP1fcumazpyBYrt8RMNNJium'),
-            ('Bitcoin Master', '1KopQ3e9pFKEwTmriSvia1TyJc1VJ5KXLF'),
-            ('Master Yoda', '1ABnFxaVGQ1ccefekKTXUVPNBiTLy9ytD6'),
-            ('Coinbase Test', '13kqo1oaQskAHBb6krsczYBTtkeMpEEVsK'),
-            ('Prince of Persia', '1G25qfo8aH1SHRfy5VuVYitH9vevyfvse7'),
+        EXPECTED = \
+            [
+                ('Dash - Test', '1FudEVgHetFdDeWtS6uq7k2cjiEUNw129N'),
+                ('Happy Daisy', '1Pvt1GNb92W35gXshzwUCG5kpPsBg4ACtA'),
+                ('Bill Gates', '19hz4WsAEKdP1fcumazpyBYrt8RMNNJium'),
+                ('Bitcoin Master', '1KopQ3e9pFKEwTmriSvia1TyJc1VJ5KXLF'),
+                ('Master Yoda', '1ABnFxaVGQ1ccefekKTXUVPNBiTLy9ytD6'),
+                ('Coinbase Test', '13kqo1oaQskAHBb6krsczYBTtkeMpEEVsK'),
+                ('Prince of Persia', '1G25qfo8aH1SHRfy5VuVYitH9vevyfvse7'),
             ]
 
         errors = []
@@ -87,12 +89,13 @@ class FnctionsTestCase(unittest.TestCase):
             Actions
             18Wwrz1p4cW9UnxoGDNUegY7doSnfC4ZhZ"""
 
-        EXPECTED = [
-            ('Pikachu', '1AhB4xTDhFt2hdDeUajP7gnt7soFwYiVL9'),
-            ('Charmander', '15ADxNhKLSKMpzSoAKmVjXBKF62ErwynKU'),
-            ('Charmeleon', '1Hugs3Zo3b1vZ36FCVRbwW5QfYTChwF9cZ'),
-            ('Yes - No', '1MYR9ovdGPz88KwSM55Z2rnRStprh2moGk'),
-            (None, '18Wwrz1p4cW9UnxoGDNUegY7doSnfC4ZhZ'),
+        EXPECTED = \
+            [
+                ('Pikachu', '1AhB4xTDhFt2hdDeUajP7gnt7soFwYiVL9'),
+                ('Charmander', '15ADxNhKLSKMpzSoAKmVjXBKF62ErwynKU'),
+                ('Charmeleon', '1Hugs3Zo3b1vZ36FCVRbwW5QfYTChwF9cZ'),
+                ('Yes - No', '1MYR9ovdGPz88KwSM55Z2rnRStprh2moGk'),
+                (None, '18Wwrz1p4cW9UnxoGDNUegY7doSnfC4ZhZ'),
             ]
 
         errors = []

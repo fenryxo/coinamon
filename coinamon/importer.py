@@ -23,9 +23,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from datetime import datetime
+
 from sqlalchemy import sql
-from .db import db_session
-from .models import Group, Address
+
+from coinamon.db import db_session
+from coinamon.models import Address
+from coinamon.models import Group
 
 
 class ImportFailedError(Exception):

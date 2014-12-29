@@ -23,10 +23,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
+
 from sqlalchemy.exc import IntegrityError
-from ..db import db_session
-from .. import models as m
-from . import DatabaseMixin
+
+from coinamon.db import db_session
+from coinamon import models as m
+from coinamon.tests import DatabaseMixin
 
 
 class DatabaseTestCase(DatabaseMixin, unittest.TestCase):

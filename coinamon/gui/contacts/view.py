@@ -22,9 +22,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from gi.repository import Gio, Gtk
-from ..view import View
-from . import ContactsModel, DuplicateAddressError, ContactsTree, AddContactDialog
+from gi.repository import Gio
+from gi.repository import Gtk
+
+from coinamon.gui.contacts import AddContactDialog
+from coinamon.gui.contacts import ContactsModel
+from coinamon.gui.contacts import ContactsTree
+from coinamon.gui.contacts import DuplicateAddressError
+from coinamon.gui.view import View
 
 
 class ContactsView(View):

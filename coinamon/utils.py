@@ -45,7 +45,7 @@ def parse_blockchain_contacts_list(contacts_list, skip_lines=0, step=0, errors=N
 
 def parse_blockchain_address_list(address_list, skip_lines=0, step=2, errors=None):
     lines = [line for line in (line.strip() for line in address_list.splitlines()) if line]
-    for line in lines[skip_lines::1+step]:
+    for line in lines[skip_lines::1 + step]:
         items = [item.strip() for item in line.rsplit("-", 1)]
         try:
             label, address = items

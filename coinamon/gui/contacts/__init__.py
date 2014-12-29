@@ -22,8 +22,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from .model import ContactsModel, DuplicateAddressError  # noqa
-from .tree import ContactsTree  # noqa
-from .tree import ContactsTree  # noqa
-from .addcontactdialog import AddContactDialog  # noqa
-from .view import ContactsView  # noqa
+# flake8: noqa
+
+from coinamon.gui.contacts.model import ContactsModel, DuplicateAddressError
+from coinamon.gui.contacts.tree import ContactsTree
+from coinamon.gui.contacts.addcontactdialog import AddContactDialog
+from coinamon.gui.contacts.view import ContactsView

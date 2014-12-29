@@ -25,9 +25,11 @@
 
 import os.path
 import sys
-from coinamon.db import bind_engine, db_session
 
-bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=True)
+from coinamon.db import bind_engine
+from coinamon.db import db_session
+
+bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=False)
 
 if len(sys.argv) > 1:
     command_name = sys.argv[1]
@@ -39,7 +41,7 @@ if len(sys.argv) > 1:
         if name != base_class_name:
             candidate = getattr(module, name)
             try:
-                if not issubclass(candidate,  base_class):
+                if not issubclass(candidate, base_class):
                     continue
             except TypeError:
                 continue

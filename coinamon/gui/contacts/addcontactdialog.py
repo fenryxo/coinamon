@@ -23,7 +23,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from gi.repository import Gtk
-from ..dialogs import FormDialog
+
+from coinamon.gui.dialogs import FormDialog
 
 
 class AddContactDialog(FormDialog):
