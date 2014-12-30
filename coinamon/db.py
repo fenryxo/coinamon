@@ -23,9 +23,21 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from contextlib import contextmanager
+import sqlite3
+
 from sqlalchemy import create_engine, Column, Integer
+import sqlalchemy.engine
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy import event
 from sqlalchemy.orm import sessionmaker
+
+
+@event.listens_for(sqlalchemy.engine.Engine, "connect")
+def _set_sqlite_pragma(dbapi_connection, connection_record):
+    if isinstance(dbapi_connection, sqlite3.Connection):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON;")
+        cursor.close()
 
 
 class Base(object):
