@@ -46,6 +46,7 @@ class BlockchaininfoImporter(Importer):
                     label = item.get("label", addr)
                     yield {"addr": addr, "label": label}
                 except (LookupError, TypeError) as e:
-                    errors.append(BadDataError(*e.args))
+                    errors.append(BadDataError(
+                        "{} {}, data: {}".format(e.__class__.__name__, e, item)))
         except TypeError as e:
             raise BadDataError(*e.args)

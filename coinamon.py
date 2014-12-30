@@ -33,7 +33,7 @@ bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo
 
 if len(sys.argv) > 1:
     from coinamon.core.cli import run_command
-    components = ("core", "contacts", )
+    components = ("core", "contacts", "blockchaininfo")
     sys.exit(run_command(sys.argv, components, db_session))
 else:
     from coinamon.application import Application
