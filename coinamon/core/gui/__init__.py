@@ -22,26 +22,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# flake8: noqa
+
+import signal
+
 from gi.repository import Gtk
 
-from coinamon.gui.dialogs import FormDialog
+from coinamon.core.gui.mainwindow import MainWindow
+from coinamon.core.gui.view import HelloWorldView
 
 
-class AddContactDialog(FormDialog):
-    def __init__(self, parent_window=None, title="Add contact"):
-        super().__init__(parent_window=parent_window, title=title)
-
-        self.add_buttons("Save", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL)
-
-        grid = Gtk.Grid(margin=10, column_spacing=10, row_spacing=10)
-        self.get_content_area().add(grid)
-        label = Gtk.Label(label="Address")
-        grid.attach(label, 0, 0, 1, 1)
-        label = Gtk.Label(label="Label")
-        grid.attach(label, 0, 1, 1, 1)
-
-        self.address_entry = Gtk.Entry(hexpand=True, vexpand=True, valign=Gtk.Align.CENTER)
-        grid.attach(self.address_entry, 1, 0, 1, 1)
-        self.label_entry = Gtk.Entry(hexpand=True, vexpand=True, valign=Gtk.Align.CENTER)
-        grid.attach(self.label_entry, 1, 1, 1, 1)
-        grid.show_all()
+signal.signal(signal.SIGINT, signal.SIG_DFL)

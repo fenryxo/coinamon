@@ -22,28 +22,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from gi.repository import Gio
 from gi.repository import Gtk
 
+from coinamon.core.gui.dialogs import FormDialog
 
-class Application(Gtk.Application):
-    def __init__(self, db_session):
-        Gtk.Application.__init__(
-            self, application_id="eu.tiliado.Coinamon", flags=Gio.ApplicationFlags.FLAGS_NONE)
-        self.db_session = db_session
-        self.window = None
-        self.connect("activate", self.on_activate)
 
-    def on_activate(self, app):
-        if self.window:
-            self.window.present()
-            return
+class AddContactDialog(FormDialog):
+    def __init__(self, parent_window=None, title="Add contact"):
+        super().__init__(parent_window=parent_window, title=title)
 
-        from coinamon.gui import ContactsView
-        from coinamon.gui import HelloWorldView
-        from coinamon.gui import MainWindow
-        self.window = window = MainWindow()
-        app.add_window(window)
-        window.add_view(HelloWorldView())
-        window.add_view(ContactsView(app.db_session), True)
-        window.present()
+        self.add_buttons("Save", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL)
+
+        grid = Gtk.Grid(margin=10, column_spacing=10, row_spacing=10)
+        self.get_content_area().add(grid)
+        label = Gtk.Label(label="Address")
+        grid.attach(label, 0, 0, 1, 1)
+        label = Gtk.Label(label="Label")
+        grid.attach(label, 0, 1, 1, 1)
+
+        self.address_entry = Gtk.Entry(hexpand=True, vexpand=True, valign=Gtk.Align.CENTER)
+        grid.attach(self.address_entry, 1, 0, 1, 1)
+        self.label_entry = Gtk.Entry(hexpand=True, vexpand=True, valign=Gtk.Align.CENTER)
+        grid.attach(self.label_entry, 1, 1, 1, 1)
+        grid.show_all()

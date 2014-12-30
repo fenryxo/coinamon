@@ -24,13 +24,7 @@
 
 # flake8: noqa
 
-import signal
-
-from gi.repository import Gtk
-
-from coinamon.gui.contacts import ContactsView
-from coinamon.gui.mainwindow import MainWindow
-from coinamon.gui.view import HelloWorldView
-
-
-signal.signal(signal.SIGINT, signal.SIG_DFL)
+from coinamon.contacts.gui.model import ContactsModel, DuplicateAddressError
+from coinamon.contacts.gui.tree import ContactsTree
+from coinamon.contacts.gui.addcontactdialog import AddContactDialog
+from coinamon.contacts.gui.view import ContactsView

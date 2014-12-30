@@ -38,6 +38,6 @@ if len(sys.argv) > 1:
     components = tuple(lookup_components())
     sys.exit(run_command(sys.argv, components, db_session))
 else:
-    from coinamon.application import Application
+    from coinamon.core.application import Application
     app = Application(db_session)
     sys.exit(app.run(sys.argv))

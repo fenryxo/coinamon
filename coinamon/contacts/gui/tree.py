@@ -24,7 +24,7 @@
 
 from gi.repository import Gtk
 
-from coinamon.gui.contacts import ContactsModel
+from coinamon.contacts.gui import ContactsModel
 
 
 class BaseContactsTree(Gtk.TreeView):

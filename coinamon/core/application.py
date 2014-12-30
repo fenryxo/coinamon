@@ -22,9 +22,28 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# flake8: noqa
+from gi.repository import Gio
+from gi.repository import Gtk
 
-from coinamon.gui.contacts.model import ContactsModel, DuplicateAddressError
-from coinamon.gui.contacts.tree import ContactsTree
-from coinamon.gui.contacts.addcontactdialog import AddContactDialog
-from coinamon.gui.contacts.view import ContactsView
+
+class Application(Gtk.Application):
+    def __init__(self, db_session):
+        Gtk.Application.__init__(
+            self, application_id="eu.tiliado.Coinamon", flags=Gio.ApplicationFlags.FLAGS_NONE)
+        self.db_session = db_session
+        self.window = None
+        self.connect("activate", self.on_activate)
+
+    def on_activate(self, app):
+        if self.window:
+            self.window.present()
+            return
+
+        from coinamon.contacts.gui import ContactsView
+        from coinamon.core.gui import HelloWorldView
+        from coinamon.core.gui import MainWindow
+        self.window = window = MainWindow()
+        app.add_window(window)
+        window.add_view(HelloWorldView())
+        window.add_view(ContactsView(app.db_session), True)
+        window.present()
