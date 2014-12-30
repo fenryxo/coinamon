@@ -23,9 +23,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from coinamon.db import bind_engine
+from coinamon.db import db_session
 
 
 class DatabaseMixin():
     def setUp(self):
         bind_engine('sqlite:///:memory:', echo=False)
+        self.db_session = db_session
         super().setUp()
