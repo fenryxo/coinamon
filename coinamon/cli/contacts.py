@@ -25,7 +25,11 @@
 import argparse
 import json
 
+from sqlalchemy.exc import IntegrityError
+
 from coinamon.cli import Command
+from coinamon.cli.command import IntValidator
+from coinamon.cli.command import str_not_empty
 from coinamon.models import Group
 
 
@@ -106,3 +110,26 @@ class DumpContactsCommand(Command):
             print(json.dumps(data, separators=(',', ':')))
         else:
             print(json.dumps(data, sort_keys=True, indent=2))
+
+
+class CreateGroupCommand(Command):
+    name = "create_group"
+    label = "Crate a new group in your list of contacts"
+
+    def run(self, prog, args):
+        parser = argparse.ArgumentParser(prog, description=self.label)
+        parser.add_argument(
+            '-p', '--parent', type=IntValidator(1),
+            help='Id of a parent group. Use `list_groups -i` to get list of groups with id.')
+        parser.add_argument("name", metavar="NAME", type=str_not_empty, help="Group name")
+        args = parser.parse_args(args)
+
+        try:
+            with self.db_session() as dbs:
+                group = Group(parent_id=args.parent, name=args.name)
+                dbs.add(group)
+                dbs.commit()
+                print("Added group '{}' with id {}.".format(args.name, group.id))
+        except IntegrityError:
+            print("Error: Parent group with id {} does not exist.".format(args.parent))
+            return 2

@@ -25,6 +25,7 @@
 # flake8: noqa
 
 from coinamon.cli.command import Command
+from coinamon.cli.contacts import CreateGroupCommand
 from coinamon.cli.contacts import DumpContactsCommand
 from coinamon.cli.contacts import ListContactsCommand
 from coinamon.cli.contacts import ListGroupsCommand
