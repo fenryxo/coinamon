@@ -27,9 +27,9 @@ import json
 
 from sqlalchemy.exc import IntegrityError
 
-from coinamon.cli import Command
-from coinamon.cli.command import IntValidator
-from coinamon.cli.command import str_not_empty
+from coinamon.core.cli import Command
+from coinamon.core.cli import IntValidator
+from coinamon.core.cli import str_not_empty
 from coinamon.models import Group
 
 
