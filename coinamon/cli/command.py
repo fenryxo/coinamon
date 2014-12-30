@@ -22,6 +22,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import argparse
 import sys
 
 from coinamon import importer
@@ -36,6 +37,33 @@ class Command:
 
     def run(self, prog, argv):
         raise NotImplementedError("{}.run not implemented.".format(self.__class__.__name__))
+
+
+class IntValidator:
+    def __init__(self, min_value=None, max_value=None):
+        self.min_value, self.max_value = min_value, max_value
+
+    def __call__(self, value):
+        try:
+            value = int(value)
+        except ValueError:
+            raise argparse.ArgumentTypeError("'{}' is not a valid integer.".format(value))
+        if self.min_value is not None and value < self.min_value:
+            raise argparse.ArgumentTypeError(
+                "Value must be equal to {} or greater, but {} is not.".format(
+                    self.min_value, value))
+        if self.max_value is not None and value > self.max_value:
+            raise argparse.ArgumentTypeError(
+                "Value must be equal to {} or lesser, but {} is not.".format(
+                    self.max_value, value))
+        return value
+
+
+def str_not_empty(value):
+    value = value.strip()
+    if not value:
+        raise argparse.ArgumentTypeError("Empty string not allowed.")
+    return value
 
 
 class ImportContactsCommand(Command):
