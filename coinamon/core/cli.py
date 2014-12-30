@@ -29,7 +29,7 @@ from importlib import import_module
 def lookup_command(components, command_name, commands_found=None):
     for component in components:
         try:
-            module = import_module("coinamon.{}.cli".format(component))
+            module = import_module("{}.cli".format(component))
             for name in dir(module):
                 candidate = getattr(module, name)
                 try:

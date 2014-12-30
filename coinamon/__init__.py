@@ -22,6 +22,24 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from importlib import import_module
+import os.path
 import sys
+
+
 if sys.hexversion < 0x030400F0:
     raise Exception("Python >= 3.4 required")
+
+
+def lookup_components():
+    for ns in "coinamon", "coinamon.ext":
+        for path in (os.path.join(path, *ns.split(".")) for path in sys.path):
+            if os.path.isdir(path):
+                for item in os.listdir(path):
+                    if not item.startswith("_"):
+                        name = "{}.{}".format(ns, item.split(".", 1)[0])
+                        try:
+                            import_module(name)
+                            yield name
+                        except ImportError:
+                            pass
