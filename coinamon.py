@@ -26,16 +26,15 @@
 import os.path
 import sys
 
-from coinamon.core.db import bind_engine
 from coinamon.core.db import db_session
+from coinamon.core.db import init_db
+from coinamon import lookup_components
 
-bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=False)
+components = tuple(lookup_components())
+init_db('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), components, echo=False)
 
 if len(sys.argv) > 1:
     from coinamon.core.cli import run_command
-    from coinamon import lookup_components
-
-    components = tuple(lookup_components())
     sys.exit(run_command(sys.argv, components, db_session))
 else:
     from coinamon.core.application import Application

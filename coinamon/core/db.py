@@ -23,6 +23,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from contextlib import contextmanager
+from importlib import import_module
 import sqlite3
 
 from sqlalchemy import create_engine, Column, Integer
@@ -67,10 +68,16 @@ def db_session():
         session.close()
 
 
-def bind_engine(engine, **kwd):
+def init_db(engine, components, **kwd):
     if isinstance(engine, str):
         engine = create_engine(engine, **kwd)
-    from coinamon.core import models  # noqa
+
+    for component in components:
+        try:
+            import_module("{}.models".format(component))
+        except ImportError:
+            pass
+
     Model.metadata.create_all(engine)
     Session.configure(bind=engine)
     return engine

@@ -22,12 +22,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from coinamon.core.db import bind_engine
 from coinamon.core.db import db_session
+from coinamon.core.db import init_db
+from coinamon import lookup_components
+
+
+components = tuple(lookup_components())
 
 
 class DatabaseMixin():
     def setUp(self):
-        bind_engine('sqlite:///:memory:', echo=False)
+        init_db('sqlite:///:memory:', components, echo=False)
         self.db_session = db_session
         super().setUp()
