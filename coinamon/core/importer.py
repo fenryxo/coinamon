@@ -22,6 +22,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+from sqlalchemy import sql
+
+from coinamon.models import Address
+from coinamon.models import Group
+
 
 class Importer:
     IMPORTS_CONTACTS = "contacts"
@@ -36,6 +41,39 @@ class Importer:
     def import_contacts(self, data):
         raise NotImplementedError(
             "{}.import_contacts not implemented.".format(self.__class__.__name__))
+
+    def analyse_contacts(self, contacts):
+        unique = []
+        duplicate = []
+
+        with self.db_session() as dbs:
+            for item in contacts:
+                addr = item["addr"]
+                label = item["label"]
+                item = label, addr
+                if dbs.query(sql.exists().where(Address.id == addr)).scalar():
+                    duplicate.append(item)
+                else:
+                    unique.append(item)
+
+        return unique, duplicate
+
+    def save_contacts(self, group, contacts):
+        with self.db_session() as dbs:
+            if isinstance(group, str):
+                group = Group(name=group)
+                dbs.add(group)
+                dbs.flush()
+                group_id = group.id
+            elif isinstance(group, Group):
+                group_id = group.id
+            else:
+                raise TypeError("Argument group must be a Group or a str, but got {}.".format(
+                    type(group)))
+
+            for label, address_id in contacts:
+                dbs.add(Address(
+                    id=address_id, label=label, group_id=group_id, type=Address.TYPE_CONTACT))
 
 
 class BadDataError(ValueError):

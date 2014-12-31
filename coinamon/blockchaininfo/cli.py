@@ -26,13 +26,10 @@ import argparse
 from datetime import datetime
 import sys
 
-from sqlalchemy import sql
-
 from coinamon.blockchaininfo.importer import BlockchaininfoImporter
 from coinamon.core.cli import Command
 from coinamon.core.cli import IntValidator
 from coinamon.core.importer import BadDataError
-from coinamon.models import Address
 from coinamon.models import Group
 
 
@@ -55,43 +52,24 @@ class ImportBlockchainWalletCommand(Command):
                 if not group:
                     print("Error: Group with id {} does not exist.".format(args.group))
                     return 2
-                group_id = group.id
+        else:
+            group = "Blockchain.info Wallet Import ({0:%c})".format(datetime.today())
 
         print("Paste data and hit Ctrl-D\n")
         data = sys.stdin.read()
         print("")
 
         errors = []
-        unique = []
-        duplicate = []
+
         try:
-            with self.db_session() as dbs:
-                for item in importer.import_contacts(data, errors):
-                    print(item)
-                    addr = item["addr"]
-                    label = item["label"]
-                    item = label, addr
-                    if dbs.query(sql.exists().where(Address.id == addr)).scalar():
-                        duplicate.append(item)
-                    else:
-                        unique.append(item)
+            unique, duplicate = importer.analyse_contacts(importer.import_contacts(data, errors))
         except BadDataError as e:
             print("Error: Data processing failed. {}".format(e))
             return 2
 
         code = 0
         if unique:
-            with self.db_session() as dbs:
-                if not args.group:
-                    group = Group(
-                        name="Blockchain.info Wallet Import ({0:%c})".format(datetime.today()))
-                    dbs.add(group)
-                    dbs.flush()
-                    group_id = group.id
-
-                for label, address_id in unique:
-                    dbs.add(Address(
-                        id=address_id, label=label, group_id=group_id, type=Address.TYPE_CONTACT))
+            importer.save_contacts(group, unique)
 
             print("Imported addresses:\n")
             for label, address in unique:
