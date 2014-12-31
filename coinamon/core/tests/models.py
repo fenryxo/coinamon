@@ -28,7 +28,7 @@ from sqlalchemy.exc import IntegrityError
 
 from coinamon.core.db import db_session
 from coinamon.core import models as m
-from coinamon.tests import DatabaseMixin
+from coinamon.core.tests import DatabaseMixin
 
 
 class DatabaseTestCase(DatabaseMixin, unittest.TestCase):

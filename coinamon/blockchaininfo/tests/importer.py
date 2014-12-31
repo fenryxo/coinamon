@@ -27,7 +27,7 @@ import unittest
 from coinamon.blockchaininfo.importer import BlockchaininfoImporter
 from coinamon.blockchaininfo.tests import data
 from coinamon.core.importer import BadDataError
-from coinamon.tests import DatabaseMixin
+from coinamon.core.tests import DatabaseMixin
 
 
 class BlockchaininfoImporterTest(DatabaseMixin, unittest.TestCase):
