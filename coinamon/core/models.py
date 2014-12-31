@@ -25,7 +25,7 @@
 from sqlalchemy import Table, Column, String, Integer, BigInteger, Boolean, Enum, ForeignKey
 from sqlalchemy.orm import relationship, validates
 
-from coinamon.db import Model
+from coinamon.core.db import Model
 
 
 class Account(Model):

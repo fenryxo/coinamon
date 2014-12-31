@@ -26,8 +26,8 @@
 import os.path
 import sys
 
-from coinamon.db import bind_engine
-from coinamon.db import db_session
+from coinamon.core.db import bind_engine
+from coinamon.core.db import db_session
 
 bind_engine('sqlite:///' + os.path.join(os.path.abspath("."), "db.sqlite"), echo=False)
 

@@ -25,8 +25,8 @@
 from gi.repository import Gtk
 from sqlalchemy.exc import IntegrityError
 
-from coinamon.models import Address
-from coinamon.models import Group
+from coinamon.core.models import Address
+from coinamon.core.models import Group
 
 
 class DuplicateAddressError(ValueError):

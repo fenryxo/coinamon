@@ -26,8 +26,8 @@ import unittest
 
 from sqlalchemy.exc import IntegrityError
 
-from coinamon.db import db_session
-from coinamon import models as m
+from coinamon.core.db import db_session
+from coinamon.core import models as m
 from coinamon.tests import DatabaseMixin
 
 

@@ -30,7 +30,7 @@ from coinamon.blockchaininfo.importer import BlockchaininfoImporter
 from coinamon.core.cli import Command
 from coinamon.core.cli import IntValidator
 from coinamon.core.importer import BadDataError
-from coinamon.models import Group
+from coinamon.core.models import Group
 
 
 class ImportBlockchainWalletCommand(Command):
