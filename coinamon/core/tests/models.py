@@ -26,7 +26,6 @@ import unittest
 
 from sqlalchemy.exc import IntegrityError
 
-from coinamon.core.db import db_session
 from coinamon.core import models as m
 from coinamon.core.tests import DatabaseMixin
 
@@ -44,38 +43,38 @@ class AccountModelTest(DatabaseTestCase):
         return m.Account(name="name", type=m.Account.TYPE_RANDOM)
 
     def test_valid_ok(self):
-        with db_session() as db:
+        with self.db_session() as db:
             db.add(self.create())
 
     def test_blank_fails(self):
-        with self.assertRaises(IntegrityError), db_session() as db:
+        with self.assertRaises(IntegrityError), self.db_session() as db:
             db.add(m.Account())
 
     def test_validate_name(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=" "))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=""))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=None))
 
     def test_validate_n_tx(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(n_tx=-1))
 
-        with self.assertRaises(TypeError), db_session() as db:
+        with self.assertRaises(TypeError), self.db_session() as db:
             db.add(self.create(n_tx="foo"))
 
     def test_validate_type(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(type="foo"))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(type=""))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(type=None))
 
 
@@ -84,21 +83,21 @@ class TagModelTest(DatabaseTestCase):
         return m.Tag(name="name")
 
     def test_valid_ok(self):
-        with db_session() as db:
+        with self.db_session() as db:
             db.add(self.create())
 
     def test_blank_fails(self):
-        with self.assertRaises(IntegrityError), db_session() as db:
+        with self.assertRaises(IntegrityError), self.db_session() as db:
             db.add(m.Tag())
 
     def test_validate_name(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=" "))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=""))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=None))
 
 
@@ -107,35 +106,35 @@ class GroupModelTest(DatabaseTestCase):
         return m.Group(name="name")
 
     def test_valid_ok(self):
-        with db_session() as db:
+        with self.db_session() as db:
             db.add(self.create())
 
     def test_blank_fails(self):
-        with self.assertRaises(IntegrityError), db_session() as db:
+        with self.assertRaises(IntegrityError), self.db_session() as db:
             db.add(m.Group())
 
     def test_validate_name(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=" "))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=""))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(name=None))
 
     def test_validate_n_tx(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(n_tx=-1))
 
-        with self.assertRaises(TypeError), db_session() as db:
+        with self.assertRaises(TypeError), self.db_session() as db:
             db.add(self.create(n_tx="foo"))
 
 
 class AddressModelTest(DatabaseTestCase):
     def setUp(self):
         super().setUp()
-        with db_session() as db:
+        with self.db_session() as db:
             self.group = m.Group(name="group")
             self.account = m.Account(name="Account")
             db.commit()
@@ -146,26 +145,26 @@ class AddressModelTest(DatabaseTestCase):
         return m.Address(id="addrid", type=m.Address.TYPE_CONTACT, group_id=self.group_id)
 
     def test_valid_ok(self):
-        with db_session() as db:
+        with self.db_session() as db:
             db.add(self.create())
 
     def test_blank_fails(self):
-        with self.assertRaises(IntegrityError), db_session() as db:
+        with self.assertRaises(IntegrityError), self.db_session() as db:
             db.add(m.Address())
 
     def test_validate_type(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(type="foo"))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(type=""))
 
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(type=None))
 
     def test_validate_n_tx(self):
-        with self.assertRaises(AssertionError), db_session() as db:
+        with self.assertRaises(AssertionError), self.db_session() as db:
             db.add(self.create(n_tx=-1))
 
-        with self.assertRaises(TypeError), db_session() as db:
+        with self.assertRaises(TypeError), self.db_session() as db:
             db.add(self.create(n_tx="foo"))
