@@ -47,13 +47,42 @@ class MainWindow(Gtk.ApplicationWindow):
         self.visible_child = None
         self.stack.connect("notify::visible-child-name", self.on_stack_child_changed)
 
+        self.menu_button = Gtk.MenuButton()
+        self.menu_button.set_image(Gtk.Image.new_from_icon_name(
+            "emblem-system-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
+        self.menu_button.set_menu_model(Gio.Menu())
+        self.header_bar.pack_end(self.menu_button)
+
+    def add_menu_item(self, path, detailed_action):
+        path = list(s.strip() for s in path.split("/") if s.strip())
+        label = path.pop()
+        item = Gio.MenuItem.new(label, detailed_action)
+
+        gear_menu = menu = self.menu_button.get_menu_model()
+        for label in path:
+            gmenu_label = "'{}'".format(label)
+            parent, menu = menu, None
+            for i in range(parent.get_n_items()):
+                parent_label = str(parent.get_item_attribute_value(i, "label"))
+                print(parent_label, label)
+                if parent_label == gmenu_label:
+                    menu = parent.get_item_link(i, "submenu")
+                    break
+
+            if menu is None:
+                menu = Gio.Menu()
+                parent.append_submenu(label, menu)
+
+        menu.append_item(item)
+        if gear_menu.get_n_items():
+            self.menu_button.show()
+
     def add_view(self, view, show=False):
         try:
             actions = view.__class__.Actions
             for action in actions.__dict__.values():
                 if isinstance(action, Gio.Action):
                     self.add_action(action)
-                    print(action)
         except AttributeError:
             pass
 
@@ -67,7 +96,9 @@ class MainWindow(Gtk.ApplicationWindow):
         if self.visible_child:
             self.disable_actions(self.views[self.visible_child])
         for child in self.header_bar.get_children():
-            self.header_bar.remove(child)
+            if child is not self.menu_button:
+                self.header_bar.remove(child)
+
         self.visible_child = name = stack.get_visible_child_name()
         if name:
             view = self.views[name]
