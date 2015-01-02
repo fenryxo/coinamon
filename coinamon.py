@@ -38,5 +38,5 @@ if len(sys.argv) > 1:
     sys.exit(run_command(sys.argv, components, db_session))
 else:
     from coinamon.core.application import Application
-    app = Application(db_session)
+    app = Application(components, db_session)
     sys.exit(app.run(sys.argv))

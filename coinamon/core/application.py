@@ -27,9 +27,10 @@ from gi.repository import Gtk
 
 
 class Application(Gtk.Application):
-    def __init__(self, db_session):
+    def __init__(self, components, db_session):
         Gtk.Application.__init__(
             self, application_id="eu.tiliado.Coinamon", flags=Gio.ApplicationFlags.FLAGS_NONE)
+        self.components = components
         self.db_session = db_session
         self.window = None
         self.connect("activate", self.on_activate)
@@ -39,11 +40,25 @@ class Application(Gtk.Application):
             self.window.present()
             return
 
-        from coinamon.contacts.gui import ContactsView
-        from coinamon.core.gui import HelloWorldView
         from coinamon.core.gui import MainWindow
+        from importlib import import_module
+
         self.window = window = MainWindow()
         app.add_window(window)
-        window.add_view(HelloWorldView())
-        window.add_view(ContactsView(app.db_session), True)
+
+        modules = []
+        for component in self.components:
+            try:
+                module = import_module("{}.gui".format(component))
+                modules.append(module)
+                module.add_views(app, window)
+            except (ImportError, AttributeError):
+                pass
+
+        for module in modules:
+            try:
+                module.add_actions(app, window)
+            except AttributeError:
+                pass
+
         window.present()

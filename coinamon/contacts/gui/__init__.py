@@ -28,3 +28,11 @@ from coinamon.contacts.gui.model import ContactsModel, DuplicateAddressError
 from coinamon.contacts.gui.tree import ContactsTree
 from coinamon.contacts.gui.addcontactdialog import AddContactDialog
 from coinamon.contacts.gui.view import ContactsView
+
+
+def add_views(app, window):
+    window.add_view(ContactsView(app.db_session), True)
+
+
+def add_actions(app, window):
+    pass

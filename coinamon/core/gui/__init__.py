@@ -33,3 +33,11 @@ from coinamon.core.gui.view import HelloWorldView
 
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+
+def add_views(app, window):
+    window.add_view(HelloWorldView())
+
+
+def add_actions(app, window):
+    pass
