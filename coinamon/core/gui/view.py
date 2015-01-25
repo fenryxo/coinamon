@@ -22,8 +22,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from gi.repository import Gtk
-
 
 class View:
     def __init__(self, name, label, widget):
@@ -37,19 +35,3 @@ class View:
 
     def update_actions(self):
         pass
-
-
-class HelloWorldView(View):
-    def __init__(self):
-        widget = Gtk.Label(label="Hello world!")
-        super().__init__("hello_world", "Hello World", widget)
-        self.button = self.button = Gtk.Button(label="Click Here", visible=True)
-        self.button.connect("clicked", self.on_button_clicked)
-
-    def add_buttons(self, header_bar):
-        super().add_buttons(header_bar)
-        header_bar.pack_start(self.button)
-
-    def on_button_clicked(self, widget):
-        print("Hello World")
-        Gtk.main_quit()
