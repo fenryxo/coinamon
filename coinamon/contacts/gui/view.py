@@ -38,6 +38,7 @@ class ContactsView(View):
         ADD_GROUP = Gio.SimpleAction.new("add_group", None)
         ADD_SUBGROUP = Gio.SimpleAction.new("add_subgroup", None)
         REMOVE_GROUP = Gio.SimpleAction.new("remove_group", None)
+        REMOVE_CONTACT = Gio.SimpleAction.new("remove_contact", None)
 
     def __init__(self, db_session):
         widget = grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, row_spacing=10, margin=10)
@@ -56,6 +57,7 @@ class ContactsView(View):
         self.Actions.ADD_GROUP.connect("activate", self.on_add_group)
         self.Actions.ADD_SUBGROUP.connect("activate", self.on_add_subgroup)
         self.Actions.REMOVE_GROUP.connect("activate", self.on_remove_group)
+        self.Actions.REMOVE_CONTACT.connect("activate", self.on_remove_contact)
         self.buttons = []
 
         # Add actions
@@ -76,6 +78,7 @@ class ContactsView(View):
             "list-remove-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
         menu = Gio.Menu()
         menu.append("Remove group", "win." + self.Actions.REMOVE_GROUP.get_name())
+        menu.append("Remove contact", "win." + self.Actions.REMOVE_CONTACT.get_name())
         button.set_menu_model(menu)
         button.show_all()
         self.buttons.append(button)
@@ -99,6 +102,7 @@ class ContactsView(View):
         self.Actions.ADD_GROUP.set_enabled(model.can_add_group(tree_iter))
         self.Actions.ADD_SUBGROUP.set_enabled(model.can_add_subgroup(tree_iter))
         self.Actions.REMOVE_GROUP.set_enabled(model.can_remove_group(tree_iter))
+        self.Actions.REMOVE_CONTACT.set_enabled(model.can_remove_contact(tree_iter))
 
     def on_add_contact(self, *args):
         model, tree_iter = self.selection.get_selected()
@@ -140,3 +144,7 @@ class ContactsView(View):
     def on_remove_group(self, *args):
         model, tree_iter = self.selection.get_selected()
         model.remove_group(tree_iter)
+
+    def on_remove_contact(self, *args):
+        model, tree_iter = self.selection.get_selected()
+        model.remove_contact(tree_iter)

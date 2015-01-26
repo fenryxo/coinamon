@@ -87,6 +87,9 @@ class ContactsModel(Gtk.TreeStore):
         # TODO: recursive remove for self.iter_depth(tree_iter) > 0
         return self.is_group(tree_iter) and self.iter_n_children(tree_iter) == 0
 
+    def can_remove_contact(self, tree_iter):
+        return self.is_address(tree_iter)
+
     def walk_tree(self, start_iter=None):
         tree_iter = start_iter or self.get_iter_first()
         while tree_iter:
@@ -147,6 +150,15 @@ class ContactsModel(Gtk.TreeStore):
         group_id = self[tree_iter][self.GROUP_ID]
         with self.db_session() as dbs:
             dbs.query(Group).filter_by(id=group_id).delete()
+        del self[tree_iter]
+
+    def remove_contact(self, tree_iter):
+        assert self.can_remove_contact(tree_iter)
+        addr_id = self[tree_iter][self.KEY]
+        with self.db_session() as dbs:
+            addr = dbs.query(Address).filter_by(id=addr_id).first()
+            assert not addr.account_id and addr.type == Address.TYPE_CONTACT
+            dbs.delete(addr)
         del self[tree_iter]
 
     def set_group_name(self, path, name):
