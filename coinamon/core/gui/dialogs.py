@@ -25,7 +25,15 @@
 from gi.repository import Gtk
 
 
-class Dialog(Gtk.Dialog):
+class DialogMixin:
+    def add_button_with_class(self, label, response_id, style_class):
+        button = self.add_button(label, response_id)
+        if style_class:
+            button.get_style_context().add_class(style_class)
+        return button
+
+
+class Dialog(DialogMixin, Gtk.Dialog):
     def __init__(self, parent_window=None, title="", **kwargs):
         try:
             use_header_bar = Gtk.Settings.get_default().get_property("gtk-dialogs-use-header")

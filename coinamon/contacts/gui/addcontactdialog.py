@@ -31,7 +31,8 @@ class AddContactDialog(FormDialog):
     def __init__(self, parent_window=None, title="Add contact"):
         super().__init__(parent_window=parent_window, title=title)
 
-        self.add_buttons("Save", Gtk.ResponseType.OK, "Cancel", Gtk.ResponseType.CANCEL)
+        self.add_button_with_class("Save", Gtk.ResponseType.OK, "suggested-action")
+        self.add_button("Cancel", Gtk.ResponseType.CANCEL)
 
         grid = Gtk.Grid(margin=10, column_spacing=10, row_spacing=10)
         self.get_content_area().add(grid)
