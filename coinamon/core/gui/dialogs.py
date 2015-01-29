@@ -73,3 +73,11 @@ class FormDialog(Dialog):
 
     def show_info(self, text):
         self.show_infobar(text, Gtk.MessageType.INFO)
+
+
+class MessageDialog(DialogMixin, Gtk.MessageDialog):
+    def __init__(self, parent_window=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)  # GTK < 3.12
+
+        if parent_window:
+            self.set_transient_for(parent_window)

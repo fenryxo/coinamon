@@ -29,6 +29,7 @@ from coinamon.contacts.gui import AddContactDialog
 from coinamon.contacts.gui import ContactsModel
 from coinamon.contacts.gui import ContactsTree
 from coinamon.contacts.gui import DuplicateAddressError
+from coinamon.core.gui.dialogs import MessageDialog
 from coinamon.core.gui.view import View
 
 
@@ -147,4 +148,15 @@ class ContactsView(View):
 
     def on_remove_contact(self, *args):
         model, tree_iter = self.selection.get_selected()
-        model.remove_contact(tree_iter)
+        dialog = MessageDialog(
+            self.widget.get_toplevel(),
+            text="Are you sure to remove the contact?",
+            secondary_text=model.get_contact_info(tree_iter),
+            message_type=Gtk.MessageType.QUESTION)
+        dialog.add_button_with_class("Remove", Gtk.ResponseType.OK, "destructive-action")
+        dialog.add_button("Cancel", Gtk.ResponseType.CANCEL)
+        dialog.show_all()
+        response = dialog.run()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK:
+            model.remove_contact(tree_iter)

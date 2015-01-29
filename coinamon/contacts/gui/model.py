@@ -250,6 +250,12 @@ class ContactsModel(Gtk.TreeStore):
             else:
                 raise NotImplementedError
 
+    def get_contact_info(self, tree_iter):
+        assert self.is_address(tree_iter)
+        addr_id = self[tree_iter][self.KEY]
+        label = self[tree_iter][self.LABEL]
+        return "{} ({})".format(label, addr_id) if label else addr_id
+
     def _get_path_from_selection_data(self, selection_data):
         #  this crashes: result, model, path = Gtk.tree_get_row_drag_data(selection_data)
         data = selection_data.get_data()
