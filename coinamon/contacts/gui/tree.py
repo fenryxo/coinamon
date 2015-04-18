@@ -43,10 +43,16 @@ class ContactsTree(BaseContactsTree):
     KEY, LABEL, BALANCE, N_TX = range(4)
 
     def define_columns(self):
-        # Group name/address id column
+        # Icon and group name/address id columns
+        column = Gtk.TreeViewColumn("Group/Address")
+        column.set_spacing(5)
+        renderer = Gtk.CellRendererPixbuf()
+        column.pack_start(renderer, False)
+        column.add_attribute(renderer, "icon-name", ContactsModel.ICON)
         renderer = Gtk.CellRendererText()
         renderer.connect("edited", self.on_key_edited)
-        column = Gtk.TreeViewColumn("Group/Address", renderer, text=ContactsModel.KEY)
+        column.pack_start(renderer, True)
+        column.add_attribute(renderer, "text", ContactsModel.KEY)
         column.add_attribute(renderer, "editable", ContactsModel.KEY_EDITABLE)
         column.set_sort_column_id(ContactsModel.KEY_SORT)
         self.append_column(column)

@@ -38,11 +38,13 @@ class DuplicateAddressError(ValueError):
 
 
 class ContactsModel(Gtk.TreeStore):
-    GROUP_ID, KEY, KEY_SORT, KEY_EDITABLE, LABEL, LABEL_EDITABLE, BALANCE, N_TX = range(8)
+    GROUP_ID, KEY, KEY_SORT, KEY_EDITABLE, LABEL, LABEL_EDITABLE, BALANCE, N_TX, ICON = range(9)
     NEW_GROUP_ID = -1
+    GROUP_ICON = "x-office-address-book"
+    ADDRESS_ICON = "text-x-generic"
 
     def __init__(self, db_session):
-        Gtk.TreeStore.__init__(self, int, str, str, bool, str, bool, str, int)
+        Gtk.TreeStore.__init__(self, int, str, str, bool, str, bool, str, int, str)
         self.db_session = db_session
 
     def load_data(self):
@@ -59,11 +61,11 @@ class ContactsModel(Gtk.TreeStore):
                 if group:
                     iters.append(self.append(tree_iter, row=(
                         group.id, group.name, "1:" + group.name, False, None, False,
-                        str(group.balance), group.n_tx)))
+                        str(group.balance), group.n_tx, self.GROUP_ICON)))
                 elif addr:
                     self.append(tree_iter, row=(
                         0, addr.id, "2:" + addr.id, False, addr.label, False,
-                        str(addr.balance), addr.n_tx))
+                        str(addr.balance), addr.n_tx, self.ADDRESS_ICON))
 
     def is_group(self, tree_iter):
         return tree_iter is not None and self[tree_iter][self.GROUP_ID] != 0
@@ -132,17 +134,17 @@ class ContactsModel(Gtk.TreeStore):
                 raise DuplicateAddressError(address, addr.label, label)
 
         return self.insert_before(tree_iter, None, (
-            0, address, "2:" + address, False, label, False, "", 0))
+            0, address, "2:" + address, False, label, False, "", 0, self.ADDRESS_ICON))
 
     def add_group(self, tree_iter, name="New group"):
         assert self.can_add_group(tree_iter)
         return self.insert_after(None, tree_iter, (
-            self.NEW_GROUP_ID, name, "1:" + name, True, None, False, "", 0))
+            self.NEW_GROUP_ID, name, "1:" + name, True, None, False, "", 0, self.GROUP_ICON))
 
     def add_subgroup(self, tree_iter, name="New group"):
         assert self.can_add_subgroup(tree_iter)
         return self.insert_after(tree_iter, None, (
-            self.NEW_GROUP_ID, name, "1:" + name, True, None, False, "", 0))
+            self.NEW_GROUP_ID, name, "1:" + name, True, None, False, "", 0, self.GROUP_ICON))
 
     def remove_group(self, tree_iter):
         assert self.can_remove_group(tree_iter)
