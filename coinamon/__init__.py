@@ -26,6 +26,8 @@ from importlib import import_module
 import os.path
 import sys
 
+VERSION = __version__ = "0.0.0"
+VERSION_TUPLE = tuple(int(i) for i in VERSION.split("."))
 
 if sys.hexversion < 0x030400F0:
     raise Exception("Python >= 3.4 required")
