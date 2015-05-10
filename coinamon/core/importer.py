@@ -24,8 +24,8 @@
 
 from sqlalchemy import sql
 
-from coinamon.core.models import Address
-from coinamon.core.models import Group
+from coinamon.core.models import Address  # noqa
+from coinamon.core.models import Group  # noqa
 
 
 class Importer:

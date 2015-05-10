@@ -30,7 +30,7 @@ from sqlalchemy.exc import IntegrityError
 from coinamon.core.cli import Command
 from coinamon.core.cli import IntValidator
 from coinamon.core.cli import str_not_empty
-from coinamon.core.models import Group
+from coinamon.core.models import Group  # noqa
 
 
 class ListGroupsCommand(Command):

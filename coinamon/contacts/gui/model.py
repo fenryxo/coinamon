@@ -23,10 +23,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from gi.repository import Gtk
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError  # noqa
 
-from coinamon.core.models import Address
-from coinamon.core.models import Group
+from coinamon.core.models import Address  # noqa
+from coinamon.core.models import Group  # noqa
 
 
 class DuplicateAddressError(ValueError):

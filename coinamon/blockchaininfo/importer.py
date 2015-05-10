@@ -24,8 +24,8 @@
 
 import json
 
-from coinamon.core.importer import BadDataError
-from coinamon.core.importer import Importer
+from coinamon.core.importer import BadDataError  # noqa
+from coinamon.core.importer import Importer  # noqa
 
 
 class BlockchaininfoImporter(Importer):

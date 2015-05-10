@@ -26,11 +26,11 @@ import argparse
 from datetime import datetime
 import sys
 
-from coinamon.blockchaininfo.importer import BlockchaininfoImporter
-from coinamon.core.cli import Command
-from coinamon.core.cli import IntValidator
-from coinamon.core.importer import BadDataError
-from coinamon.core.models import Group
+from coinamon.blockchaininfo.importer import BlockchaininfoImporter  # noqa
+from coinamon.core.cli import Command  # noqa
+from coinamon.core.cli import IntValidator  # noqa
+from coinamon.core.importer import BadDataError  # noqa
+from coinamon.core.models import Group  # noqa
 
 
 class ImportBlockchainWalletCommand(Command):

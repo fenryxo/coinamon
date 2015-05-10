@@ -24,10 +24,10 @@
 
 import unittest
 
-from coinamon.blockchaininfo.importer import BlockchaininfoImporter
+from coinamon.blockchaininfo.importer import BlockchaininfoImporter  # noqa
 from coinamon.blockchaininfo.tests import data
-from coinamon.core.importer import BadDataError
-from coinamon.core.tests import DatabaseMixin
+from coinamon.core.importer import BadDataError  # noqa
+from coinamon.core.tests import DatabaseMixin  # noqa
 
 
 class BlockchaininfoImporterTest(DatabaseMixin, unittest.TestCase):

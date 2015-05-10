@@ -25,12 +25,12 @@
 from gi.repository import Gio
 from gi.repository import Gtk
 
-from coinamon.contacts.gui import AddContactDialog
-from coinamon.contacts.gui import ContactsModel
-from coinamon.contacts.gui import ContactsTree
-from coinamon.contacts.gui import DuplicateAddressError
-from coinamon.core.gui.dialogs import MessageDialog
-from coinamon.core.gui.view import View
+from coinamon.contacts.gui import AddContactDialog  # noqa
+from coinamon.contacts.gui import ContactsModel  # noqa
+from coinamon.contacts.gui import ContactsTree  # noqa
+from coinamon.contacts.gui import DuplicateAddressError  # noqa
+from coinamon.core.gui.dialogs import MessageDialog  # noqa
+from coinamon.core.gui.view import View  # noqa
 
 
 class ContactsView(View):
