@@ -34,14 +34,18 @@ if sys.hexversion < 0x030400F0:
 
 
 def lookup_components():
+    modules = set()
     for ns in "coinamon", "coinamon.ext":
         for path in (os.path.join(path, *ns.split(".")) for path in sys.path):
             if os.path.isdir(path):
                 for item in os.listdir(path):
                     if not item.startswith("_"):
                         name = "{}.{}".format(ns, item.split(".", 1)[0])
+                        if name in modules:
+                            continue
                         try:
                             import_module(name)
                             yield name
+                            modules.add(name)
                         except ImportError:
                             pass
