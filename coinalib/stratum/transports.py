@@ -66,6 +66,7 @@ class TransportPool:
 class TransportThread(threading.Thread):
     def __init__(self, peer, use_ssl):
         super().__init__(name=self.__class__.__name__)
+        self.daemon = True
         self.session = None
         self.peer = peer
         self.use_ssl = use_ssl
