@@ -51,14 +51,13 @@ class Application(Gtk.Application):
             try:
                 module = import_module("{}.gui".format(component))
                 modules.append(module)
-                module.add_views(app, window)
-            except (ImportError, AttributeError):
-                pass
+                if hasattr(module, "add_views"):
+                    module.add_views(app, window)
+            except ImportError as e:
+                print(e)
 
         for module in modules:
-            try:
+            if hasattr(module, "add_actions"):
                 module.add_actions(app, window)
-            except AttributeError:
-                pass
 
         window.present()
