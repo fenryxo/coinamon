@@ -29,7 +29,7 @@ from coinalib.stratum import session as m_session
 from coinalib.stratum import transports
 
 
-NotificationCallback = collections.namedtuple("NotificationCallback", "callback args kwargs")
+NotificationHandler = collections.namedtuple("NotificationHandler", "func args kwargs")
 
 
 class AsyncRequestCallback:
@@ -65,15 +65,7 @@ class StratumClient:
         self._event_loop_listener = m_session.EventLoopListener(loop, self)
         self.session.add_listener(self._event_loop_listener)
         self._transport = None
-        self.notification_callbacks = []
-
-    def subscribe(self, callback, *args, **kwargs):
-        cb = NotificationCallback(callback, args, kwargs)
-        self.notification_callbacks.append(cb)
-        return cb
-
-    def unsubscribe(self, cb):
-        self.notification_callbacks.remove(cb)
+        self.notifications = {}
 
     def start(self):
         self._transport = self.tranport_pool.get_transport()
@@ -97,6 +89,40 @@ class StratumClient:
             raise callback.error
         return callback.response
 
+    def subscribe(self, name, func, *args, **kwargs):
+        handler = NotificationHandler(func, args, kwargs)
+        try:
+            handlers = self.notifications[name]
+        except KeyError:
+            self.notifications[name] = handlers = []
+
+        handlers.append(handler)
+        return handler
+
+    def unsubscribe(self, name, handler):
+        handlers = self.notifications[name]  # raises KeyError
+        handlers.remove(handler)
+
+    def unsubscribe_by_func(self, name, func):
+        handlers = self.notifications[name]  # raises KeyError
+        for handler in handlers:
+            if handler.func == func:
+                handlers.remove(handler)
+                break
+
+    def emit(self, name, notification):
+        try:
+            handlers = self.notifications[name]
+        except KeyError:
+            traceback.print_exc()
+            return
+
+        for handler in handlers:
+            try:
+                handler.func(notification, *handler.args, **handler.kwargs)
+            except Exception:
+                traceback.print_exc()
+
     def on_transport_aborted(self, session, transport, exception):
         transport.peer.disable()
         session.restart_unprocessed()
@@ -104,11 +130,7 @@ class StratumClient:
         self._transport.start(session)
 
     def on_notification_received(self, session, notification):
-        for cb in self.notification_callbacks:
-            try:
-                cb.callback(notification, *cb.args, **cb.kwargs)
-            except Exception:
-                traceback.print_exc()
+        self.emit(notification.method, notification)
 
     def on_respose_received(self, session, request, response, error):
         try:
