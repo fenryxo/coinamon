@@ -69,7 +69,7 @@ class StratumClient:
 
     def subscribe(self, callback, *args, **kwargs):
         cb = NotificationCallback(callback, args, kwargs)
-        self.notification_callbacks.apend(cb)
+        self.notification_callbacks.append(cb)
         return cb
 
     def unsubscribe(self, cb):

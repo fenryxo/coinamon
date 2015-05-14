@@ -37,6 +37,7 @@ from coinalib.stratum import exceptions
 
 
 Response = collections.namedtuple("Response", "id response")
+Notification = collections.namedtuple("Notification", "method params")
 
 
 def create_transport(peer):
@@ -117,7 +118,7 @@ class HttpTransportThread(TransportThread):
                 except queue.Empty:
                     result = self._poll_for_responses()
                     self._process_responses(result.content)
-                    time.sleep(0.1)
+                    time.sleep(0.5)
         except (exceptions.ConnectionTimeout, exceptions.ConnectionError) as e:
             self.session.transport_aborted(self, e)
         except Exception as e:
@@ -155,18 +156,22 @@ class HttpTransportThread(TransportThread):
             if not isinstance(entries, list):
                 entries = [entries]
             for entry in entries:
+
                 message_id = entry.get("id", None)
                 if message_id == POLL_MSG_ID:
                     continue  # poll request
 
+                if message_id is None:
+                    notification = Notification(entry.get("method"), entry.get("params"))
+                    self.session.deliver_notification(notification)
+                    continue
+
                 exception = None
-                request = None
-                if message_id is not None:
-                    try:
-                        request = self.session.get_request(message_id)
-                    except KeyError:
-                        traceback.print_exc()
-                        continue
+                try:
+                    request = self.session.get_request(message_id)
+                except KeyError:
+                    traceback.print_exc()
+                    continue
 
                 error = entry.get("error")
                 if error:

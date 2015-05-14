@@ -61,13 +61,13 @@ class Session:
         return request
 
     def deliver_response(self, request, response, error):
-        if request is not None:
-            del self.in_progress[request.id]
-            for listener in self.listeners:
-                listener.on_respose_received(self, request, response, error)
-        else:
-            for listener in self.listeners:
-                listener.on_notification_received(self, response)
+        del self.in_progress[request.id]
+        for listener in self.listeners:
+            listener.on_respose_received(self, request, response, error)
+
+    def deliver_notification(self, notification):
+        for listener in self.listeners:
+            listener.on_notification_received(self, notification)
 
     def transport_aborted(self, transport, exception):
         for listener in self.listeners:
