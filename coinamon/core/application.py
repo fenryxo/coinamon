@@ -36,15 +36,35 @@ class Application(Gtk.Application):
         self.connect("activate", self.on_activate)
 
     def on_activate(self, app):
-        if self.window:
-            self.window.present()
-            return
+        if not self.window:
+            self._init_core()
+            self._init_ui()
+            self._load_components()
 
+        self.window.present()
+
+    def _init_core(self):
+        from coinalib import blockexplorers
+        from coinalib.stratum import client
+        from coinalib.stratum import glibutils
+        from coinalib.stratum import peers
+        from coinalib.stratum import transports
+
+        self.block_explorer = blockexplorers.Blocktrail()
+        loop = glibutils.MainLoopWrapper()
+        peer_list = peers.PeerList(peers.PeerList.parse(peers.DEFAULT_PEERS))
+        self.transport_pool = transports.TransportPool(peer_list)
+        self.electrum = client.StratumClient(self.transport_pool, loop)
+        self.electrum.start()
+
+    def _init_ui(self):
         from coinamon.core.gui import MainWindow
-        from importlib import import_module
 
-        self.window = window = MainWindow()
-        app.add_window(window)
+        self.window = MainWindow()
+        self.add_window(self.window)
+
+    def _load_components(self):
+        from importlib import import_module
 
         modules = []
         for component in self.components:
@@ -52,12 +72,10 @@ class Application(Gtk.Application):
                 module = import_module("{}.gui".format(component))
                 modules.append(module)
                 if hasattr(module, "add_views"):
-                    module.add_views(app, window)
+                    module.add_views(self, self.window)
             except ImportError as e:
                 print(e)
 
         for module in modules:
             if hasattr(module, "add_actions"):
-                module.add_actions(app, window)
-
-        window.present()
+                module.add_actions(self, self.window)
