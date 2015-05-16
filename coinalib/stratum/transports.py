@@ -116,9 +116,12 @@ class HttpTransportThread(TransportThread):
                         result = self._send_request(request.data, 5)
                         self._process_responses(result.content)
                 except queue.Empty:
+                    if self.session.in_progress:
+                        time.sleep(1)
+                    else:
+                        time.sleep(10)
                     result = self._poll_for_responses()
                     self._process_responses(result.content)
-                    time.sleep(0.5)
         except (exceptions.ConnectionTimeout, exceptions.ConnectionError) as e:
             self.session.transport_aborted(self, e)
         except Exception as e:
