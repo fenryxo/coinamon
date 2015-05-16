@@ -24,6 +24,7 @@
 
 
 import binascii
+import datetime
 import hashlib
 import struct
 
@@ -64,6 +65,10 @@ class BlockHeader(dict):
     @property
     def timestamp(self):
         return self["timestamp"]
+
+    @property
+    def datetime(self):
+        return datetime.datetime.utcfromtimestamp(self.timestamp)
 
     @property
     def version(self):
