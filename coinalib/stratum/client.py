@@ -27,9 +27,7 @@ import traceback
 
 from coinalib.stratum import session as m_session
 from coinalib.stratum import transports
-
-
-NotificationHandler = collections.namedtuple("NotificationHandler", "func args kwargs")
+from coinalib.stratum import utils
 
 
 class AsyncRequestCallback:
@@ -65,7 +63,7 @@ class StratumClient:
         self._event_loop_listener = m_session.EventLoopListener(loop, self)
         self.session.add_listener(self._event_loop_listener)
         self._transport = None
-        self.notifications = {}
+        self.notifications = collections.defaultdict(utils.Event)
 
     def start(self):
         self._transport = self.tranport_pool.get_transport()
@@ -89,40 +87,6 @@ class StratumClient:
             raise callback.error
         return callback.response
 
-    def subscribe(self, name, func, *args, **kwargs):
-        handler = NotificationHandler(func, args, kwargs)
-        try:
-            handlers = self.notifications[name]
-        except KeyError:
-            self.notifications[name] = handlers = []
-
-        handlers.append(handler)
-        return handler
-
-    def unsubscribe(self, name, handler):
-        handlers = self.notifications[name]  # raises KeyError
-        handlers.remove(handler)
-
-    def unsubscribe_by_func(self, name, func):
-        handlers = self.notifications[name]  # raises KeyError
-        for handler in handlers:
-            if handler.func == func:
-                handlers.remove(handler)
-                break
-
-    def emit(self, name, notification):
-        try:
-            handlers = self.notifications[name]
-        except KeyError:
-            traceback.print_exc()
-            return
-
-        for handler in handlers:
-            try:
-                handler.func(notification, *handler.args, **handler.kwargs)
-            except Exception:
-                traceback.print_exc()
-
     def on_transport_aborted(self, session, transport, exception):
         transport.peer.disable()
         session.restart_unprocessed()
@@ -130,7 +94,7 @@ class StratumClient:
         self._transport.start(session)
 
     def on_notification_received(self, session, notification):
-        self.emit(notification.method, notification)
+        self.notifications[notification.method].emit(notification)
 
     def on_respose_received(self, session, request, response, error):
         try:
@@ -141,7 +105,6 @@ class StratumClient:
 
 if __name__ == "__main__":
     from coinalib.stratum import peers
-    from coinalib.stratum import utils
 
     loop = utils.SimpleLoop()
     peer_list = peers.PeerList(peers.PeerList.parse(peers.DEFAULT_PEERS))

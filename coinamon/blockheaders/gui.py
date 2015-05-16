@@ -44,7 +44,7 @@ def add_views(app, window):
 
     method = "blockchain.headers.subscribe"
     params = []
-    app.electrum.subscribe(method, on_notification, view)
+    app.electrum.notifications[method].connect(on_notification, view)
     app.electrum.send_request_async(method, params, on_response, view)
 
 

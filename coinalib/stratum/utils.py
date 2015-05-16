@@ -68,3 +68,29 @@ class SimpleLoop:
 
     def create_child(self):
         return self.__class__(self.tasks)
+
+
+EventHandler = collections.namedtuple("EventHandler", "func args kwargs")
+
+
+class Event(list):
+    def connect(self, func, *args, **kwargs):
+        handler = EventHandler(func, args, kwargs)
+        self.append(handler)
+        return handler
+
+    def disconnect(self, handler):
+        self.remove(handler)
+
+    def disconnect_by_func(self, func):
+        for handler in self:
+            if handler.func == func:
+                self.remove(handler)
+                break
+
+    def emit(self, *args):
+        for handler in self:
+            try:
+                handler.func(*(args + handler.args), **handler.kwargs)
+            except Exception:
+                traceback.print_exc()
