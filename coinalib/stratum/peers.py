@@ -169,3 +169,7 @@ class PeerList:
         else:
             for peer in self.peers[protocol]:
                 yield peer
+
+    def enable_all(self):
+        for peer in self.list_peers():
+            peer.enable()

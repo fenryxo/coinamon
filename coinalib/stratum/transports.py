@@ -63,6 +63,9 @@ class TransportPool:
 
         return create_transport(self.peer_list.get_peer(protocol))
 
+    def enable_all(self):
+        self.peer_list.enable_all()
+
 
 class TransportThread(threading.Thread):
     def __init__(self, peer, use_ssl):
