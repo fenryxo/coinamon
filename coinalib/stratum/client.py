@@ -54,6 +54,11 @@ class SyncRequestCallback:
 
 class StratumClient:
     def __init__(self, transport_pool, loop, session=None):
+        self.init_transport = utils.Event()
+        self.connection_established = utils.Event()
+        self.connection_lost = utils.Event()
+        self.connection_reconnect = utils.Event()
+
         if session is None:
             session = m_session.Session()
 
@@ -62,17 +67,21 @@ class StratumClient:
         self.session = session
         self._event_loop_listener = m_session.EventLoopListener(loop, self)
         self.session.add_listener(self._event_loop_listener)
-        self._transport = None
+        self.transport = None
         self.notifications = collections.defaultdict(utils.Event)
+        self.reconnect_attempts = 0
+
+    @property
+    def is_connection_established(self):
+        return self.transport and self.transport.is_functional
 
     def start(self):
-        self._transport = self.tranport_pool.get_transport()
-        self._transport.start(self.session)
+        self.start_new_transport()
 
     def stop(self):
-        if self._transport:
-            self._transport.stop()
-            self._transport.join()
+        if self.transport:
+            self.transport.stop()
+            self.transport.join()
 
     def send_request_async(self, method, params, callback, *args, **kwargs):
         callback = AsyncRequestCallback(callback, args, kwargs)
@@ -87,11 +96,36 @@ class StratumClient:
             raise callback.error
         return callback.response
 
+    def start_new_transport(self):
+        if self.transport and self.transport.running:
+            self.transport.stop()
+        self.session.restart_unprocessed()
+        try:
+            self.transport = self.tranport_pool.get_transport()
+
+        except ValueError:
+            self.transport = None
+            self.reconnect()
+        else:
+            self.transport.start(self.session)
+            self.init_transport.emit(self, self.transport)
+
+    def reconnect(self):
+        self.reconnect_attempts += 1
+        delay = min(5 * self.reconnect_attempts, 5 * 60)
+        self.connection_reconnect.emit(self, self.reconnect_attempts, delay)
+        self.tranport_pool.enable_all()
+        self.loop.call_later(delay, self.start_new_transport)
+
     def on_transport_aborted(self, session, transport, exception):
         transport.peer.disable()
-        session.restart_unprocessed()
-        self._transport = self.tranport_pool.get_transport()
-        self._transport.start(session)
+        if transport.is_functional:
+            self.connection_lost.emit(self, transport)
+        self.start_new_transport()
+
+    def on_transport_functional(self, session, transport):
+        self.reconnect_attempts = 0
+        self.connection_established.emit(self, transport)
 
     def on_notification_received(self, session, notification):
         self.notifications[notification.method].emit(notification)

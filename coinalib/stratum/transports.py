@@ -75,6 +75,7 @@ class TransportThread(threading.Thread):
         self.peer = peer
         self.use_ssl = use_ssl
         self.running = False
+        self.is_functional = False
 
     def start(self, session):
         self.session = session
@@ -100,6 +101,8 @@ class HttpTransportThread(TransportThread):
         self.port = peer.port or (8082 if use_ssl else 8081)
         self.address = "{}://{}:{}/".format("https" if use_ssl else "http", peer.host, self.port)
         self.timeout = 5
+        self.poll_timeout = 10
+        self.last_poll = 0
         self.http = http = requests.Session()
         http.headers.update({
             'User-Agent': self.__class__.USER_AGENT,
@@ -112,6 +115,9 @@ class HttpTransportThread(TransportThread):
 
         self.running = True
         try:
+            # Check whether connection is functional
+            self._poll_for_responses()
+
             while self.running:
                 try:
                     while self.running:
@@ -119,12 +125,8 @@ class HttpTransportThread(TransportThread):
                         result = self._send_request(request.data, 5)
                         self._process_responses(result.content)
                 except queue.Empty:
-                    if self.session.in_progress:
-                        time.sleep(1)
-                    else:
-                        time.sleep(10)
-                    result = self._poll_for_responses()
-                    self._process_responses(result.content)
+                    time.sleep(1)
+                    self._poll_for_responses()
         except (exceptions.ConnectionTimeout, exceptions.ConnectionError) as e:
             self.session.transport_aborted(self, e)
         except Exception as e:
@@ -133,17 +135,26 @@ class HttpTransportThread(TransportThread):
         self.running = False
 
     def _poll_for_responses(self):
-        return self._send_request(json.dumps({
-            "jsonrpc": "2.0",
-            "id": POLL_MSG_ID,
-            "method": "server.version",
-            "params": ["1.9.5" "0.9"]
-        }).encode("ascii"), 5)
+        if self.session.in_progress or time.monotonic() - self.last_poll >= self.poll_timeout:
+            result = self._send_request(json.dumps({
+                "jsonrpc": "2.0",
+                "id": POLL_MSG_ID,
+                "method": "server.version",
+                "params": ["1.9.5" "0.9"]
+            }).encode("ascii"), 5)
+            self.last_poll = time.monotonic()
+            self._process_responses(result.content)
 
     def _send_request(self, data, retry=0):
         while retry >= 0:
+            print(">", self.address, retry, "\n>", data)
             try:
-                return self.http.post(self.address, data=data, timeout=self.timeout, verify=False)
+                result = self.http.post(
+                    self.address, data=data, timeout=self.timeout, verify=False)
+                if not self.is_functional:
+                    self.is_functional = True
+                    self.session.transport_functional(self)
+                return result
             except requests.Timeout as e:
                 if retry > 0:
                     retry -= 1
@@ -162,7 +173,7 @@ class HttpTransportThread(TransportThread):
             if not isinstance(entries, list):
                 entries = [entries]
             for entry in entries:
-
+                print("<", entry)
                 message_id = entry.get("id", None)
                 if message_id == POLL_MSG_ID:
                     continue  # poll request

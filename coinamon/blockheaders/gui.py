@@ -42,10 +42,15 @@ def add_views(app, window):
     def on_notification(notification, view, *args, **kwargs):
         view.add_block_header(bitcoin.BlockHeader(**notification.params[0]))
 
+    def on_new_transport(client, transport, view):
+        app.electrum.send_request_async(method, params, on_response, view)
+
     method = "blockchain.headers.subscribe"
     params = []
     app.electrum.notifications[method].connect(on_notification, view)
-    app.electrum.send_request_async(method, params, on_response, view)
+    app.electrum.connection_established.connect(on_new_transport, view)
+    if app.electrum.is_connection_established:
+        app.electrum.send_request_async(method, params, on_response, view)
 
 
 def add_actions(app, window):

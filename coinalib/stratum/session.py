@@ -73,6 +73,10 @@ class Session:
         for listener in self.listeners:
             listener.on_transport_aborted(self, transport, exception)
 
+    def transport_functional(self, transport):
+        for listener in self.listeners:
+            listener.on_transport_functional(self, transport)
+
     def restart_unprocessed(self):
         unprocessed = self.in_progress
         self.in_progress = {}
@@ -85,6 +89,9 @@ class SessionListener:
         raise NotImplementedError
 
     def on_transport_aborted(self, session, transport, exception):
+        raise NotImplementedError
+
+    def on_transport_functional(self, session, transport):
         raise NotImplementedError
 
     def on_respose_received(self, transport, request, response):
@@ -108,3 +115,7 @@ class EventLoopListener(SessionListener):
     def on_transport_aborted(self, session, transport, exception):
         self.loop.call_soon_threadsafe(
             self.listener.on_transport_aborted, session, transport, exception)
+
+    def on_transport_functional(self, session, transport):
+        self.loop.call_soon_threadsafe(
+            self.listener.on_transport_functional, session, transport)
