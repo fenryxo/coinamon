@@ -31,7 +31,7 @@ from gi.repository import Gtk
 class MainWindow(Gtk.ApplicationWindow):
     def __init__(self):
         Gtk.ApplicationWindow.__init__(self, title="Coinamon")
-        self.set_default_size(600, 400)
+        self.set_default_size(800, 600)
         self.header_bar = Gtk.HeaderBar(visible=True, show_close_button=True)
         self.set_titlebar(self.header_bar)
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, row_spacing=10)
