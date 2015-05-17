@@ -58,5 +58,15 @@ class MainLoopWrapper:
 
         GLib.idle_add(callback, func, *args, **kwargs)
 
+    def call_later(self, delay, func, *args, **kwargs):
+        def callback(func, *args2, **kwargs2):
+            try:
+                func(*args2, **kwargs2)
+            except Exception:
+                traceback.print_exc()
+            return False
+
+        GLib.timeout_add_seconds(delay, callback, func, *args, **kwargs)
+
     def create_child(self):
         return self.__class__()
